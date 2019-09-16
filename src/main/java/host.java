@@ -238,7 +238,6 @@ public class host {
 			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split(" ");
 			String[] IP = new String[IPTmp.length];
 			for (int i = 0, j = 0; i < IPTmp.length; i++) {
-//				[^0-9.-]
 				IPTmp[i] = IPTmp[i].replaceAll("[^\\d{1,3}.]", "").replaceAll("\\.\\.+", "");
 				if (IPTmp[i].equals(""))
 					continue;
@@ -324,6 +323,7 @@ public class host {
 				case "2":
 					System.out.println("Input the URL:");
 					flag = Append(ReadPage(sc.next()));
+					OpenEtc();
 					break;
 				case "3":
 					flag = Backup();
