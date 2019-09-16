@@ -7,6 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.swing.filechooser.FileSystemView;
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -212,6 +213,14 @@ public class host {
 		return Jsoup.parse(page.asXml(), url);
 	}
 
+	private static void OpenEtc() {
+		try {
+			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc\\"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static Vector<String> ReadPage(String url) {
 		String AimURL = "http://tool.chinaz.com/dns?type=1&host=" + url + "&ip=";
 		//设置代理
@@ -310,6 +319,7 @@ public class host {
 			switch (s) {
 				case "1":
 					flag = UpdateHosts(Objects.requireNonNull(ReadHosts()));
+					OpenEtc();
 					break;
 				case "2":
 					System.out.println("Input the URL:");
