@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.*;
@@ -131,41 +132,12 @@ public class host {
 				"\n";
 	}
 
-	private static Boolean Append(Vector<String> recode) {
-		if (!recode.isEmpty() && Backup()) {
-			try {
-				FileWriter fileWriter1 = new FileWriter(DesktopPath + "\\hosts", true);
-				for (int i = 0; i < recode.size(); i++)
-					fileWriter1.write(recode.elementAt(i));
-				fileWriter1.close();
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+	private static void OpenEtc() {
+		try {
+			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc\\"));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return false;
-	}
-
-	private static Boolean UpdateHosts(Vector<String> urls) {
-		if (!urls.isEmpty() && Backup()) {
-			try {
-				FileWriter fileWriter = new FileWriter(DesktopPath + "\\hosts");
-				fileWriter.write(proString());
-				fileWriter.flush();
-				fileWriter.close();
-
-				for (int i = 0; i < urls.size(); i++)
-					Append(ReadPage(urls.elementAt(i)));
-
-				//移动，但目前不能获取管理员权限写入C 盘
-//				Files.move(bak1.toPath(), hosts.toPath());
-
-				return true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return false;
 	}
 
 	private static Boolean Backup() {
@@ -213,14 +185,6 @@ public class host {
 		return Jsoup.parse(page.asXml(), url);
 	}
 
-	private static void OpenEtc() {
-		try {
-			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc\\"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	private static Vector<String> ReadPage(String url) {
 		String AimURL = "http://tool.chinaz.com/dns?type=1&host=" + url + "&ip=";
 		//设置代理
@@ -254,20 +218,20 @@ public class host {
 //				j++;
 //			}
 
-			Vector<String> tmp = new Vector<>();
+//			Vector<String> tmp = new Vector<>();
 //			for (int i = 0; i < Math.min(TTL.length, IP.length); i++)
 //				if (!(IP[i] == null))
 //					if (tmp.indexOf(IP[i]) == -1 & !IP[i].equals("-"))
 //						tmp.addElement(IP[i] + " " + TTL[i]);
 			for (String s : IP) {
 				if (!(s == null))
-					if (tmp.indexOf(s + " " + host) == -1 & !s.equals("-"))
-						tmp.addElement(s + " " + host);
+					if (recode.indexOf("\n" + s + " " + host) == -1 & !s.equals("-"))
+						recode.addElement("\n" + s + " " + host);
 			}
 
-			Collections.sort(tmp);
-			for (int i = 0; i < tmp.size(); i++)
-				recode.addElement("\n" + tmp.elementAt(i));
+			Collections.sort(recode);
+//			for (int i = 0; i < tmp.size(); i++)
+//				recode.addElement("\n" + tmp.elementAt(i));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -308,41 +272,116 @@ public class host {
 		return recode.isEmpty() ? null : recode;
 	}
 
+	private static void Append(Vector<String> recode) {
+		if (!recode.isEmpty() && Backup()) {
+			try {
+				FileWriter fileWriter1 = new FileWriter(DesktopPath + "\\hosts", true);
+				for (int i = 0; i < recode.size(); i++)
+					fileWriter1.write(recode.elementAt(i));
+				fileWriter1.close();
+				OpenEtc();
+				//移动，但目前不能获取管理员权限写入C 盘
+//				Files.move(bak1.toPath(), hosts.toPath());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void UpdateHosts(Vector<String> urls) {
+		if (!urls.isEmpty() && Backup()) {
+			try {
+				FileWriter fileWriter = new FileWriter(DesktopPath + "\\hosts");
+				fileWriter.write(proString());
+				fileWriter.flush();
+				fileWriter.close();
+
+				for (int i = 0; i < urls.size(); i++)
+					Append(ReadPage(urls.elementAt(i)));
+
+				OpenEtc();
+				//移动，但目前不能获取管理员权限写入C 盘
+//				Files.move(bak1.toPath(), hosts.toPath());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private static void Menu() {
 		//hosts 备份位于桌面
 		Scanner sc = new Scanner(System.in);
-		String s = "";
-		while (!s.equals("quit")) {
-			Boolean flag = false;
-			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出");
-			s = sc.nextLine();
+		boolean flag = true;
+		while (flag) {
+			flag = false;
+			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出");
+			String s = sc.nextLine();
 			switch (s) {
 				case "1":
-					flag = UpdateHosts(Objects.requireNonNull(ReadHosts()));
-					OpenEtc();
+					UpdateHosts(Objects.requireNonNull(ReadHosts()));
 					break;
 				case "2":
 					System.out.println("Input the URL:");
-					flag = Append(ReadPage(sc.next()));
-					OpenEtc();
+					Append(ReadPage(sc.next()));
 					break;
 				case "3":
-					flag = Backup();
+					Backup();
 					break;
+				default:
+					if (!s.equals("quit")) {
+						System.out.println("请重试");
+						flag = true;
+					}
 			}
-			if (flag)
-				break;
-			else
-				System.out.println("请重试");
 		}
 	}
 
 	private static void GUI() {
+		JFrame jf = new JFrame("test");
+//		Container container = jf.getContentPane();
 
+		String s = "随便写点什么避免尴尬";
+		JPanel update = new JPanel();
+		JButton updateHosts = new JButton("更新");
+		update.setLayout(new GridLayout(1, 1));
+		JTextArea textArea = new JTextArea(s);
+		textArea.setEditable(false);
+		update.add(textArea);
+
+		JPanel add = new JPanel();
+		JTextField hosts = new JTextField();
+		JButton search = new JButton("搜索");
+		String str = hosts.getText();
+		add.setLayout(new GridLayout(1, 2));
+		add.add(hosts);
+		add.add(search);
+
+		JPanel backup = new JPanel();
+		JButton backupHosts = new JButton("备份");
+		backup.setLayout(new GridLayout(1, 2));
+		backup.add(backupHosts);
+		backup.add(updateHosts);
+
+
+		jf.add(update, BorderLayout.NORTH);
+		jf.add(add, BorderLayout.CENTER);
+		jf.add(backup, BorderLayout.SOUTH);
+
+		//大小
+		jf.setSize(500, 500);
+		//是否可改变大小
+		jf.setResizable(false);
+		//出现位置居中
+		jf.setLocationRelativeTo(null);
+//		jf.setLocation(1200, 200);
+		//关闭窗口按钮
+		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//是否可见
+		jf.setVisible(true);
 	}
 
 	public static void main(String[] args) {
-		host.Menu();
+//		Menu();
 		GUI();
 	}
 }

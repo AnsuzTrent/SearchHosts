@@ -6,7 +6,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.awt.Desktop
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
@@ -14,6 +13,8 @@ import java.util.logging.Level
 import javax.swing.filechooser.FileSystemView
 
 private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
+
+private const val path = "C:\\Windows\\System32\\drivers\\etc\\"
 
 private val proString: () -> String = {
 	"# Copyright (c) 1993-2009 Microsoft Corp.\n" + "#\n" +
@@ -33,13 +34,13 @@ private val proString: () -> String = {
 			"#\t::1             localhost\n" + "\n"
 }
 
-private val openEtc: () -> Unit = { Desktop.getDesktop().open(File("C:\\Windows\\System32\\drivers\\etc\\")) }
+private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(path)) }
 
 private fun backup(): Boolean {
-	val hosts = File("C:\\Windows\\System32\\drivers\\etc\\hosts")
-	//备份hosts
-	val backup = File("$DesktopPath\\hosts.bak")
 	try {
+		val hosts = File("$path\\hosts")
+		//备份hosts
+		val backup = File("$DesktopPath\\hosts.bak")
 		if (backup.exists())
 			Files.delete(backup.toPath())
 		Files.copy(hosts.toPath(), backup.toPath())
@@ -48,6 +49,35 @@ private fun backup(): Boolean {
 		e.printStackTrace()
 	}
 	return false
+}
+
+private fun getDocumentFromPage(url: String): Document {
+	println("Page loading...")
+	//不打印日志
+	LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
+	java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
+	java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
+
+	//模拟Chrome
+	val webClient = WebClient(BrowserVersion.CHROME)
+	val webClientOptions = webClient.options
+
+	//禁用CSS
+	webClientOptions.isCssEnabled = false
+	//启用JS 解释器
+	webClientOptions.isJavaScriptEnabled = true
+	//JS 错误时不抛出异常
+	webClientOptions.isThrowExceptionOnScriptError = false
+	webClientOptions.isThrowExceptionOnFailingStatusCode = false
+	//连接超时时间
+	webClientOptions.timeout = 2 * 1000
+
+	val page = webClient.getPage<HtmlPage>(url)
+	//等待后台运行
+	webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
+
+	println("Loaded.")
+	return Jsoup.parse(page.asXml(), url)
 }
 
 private fun readPage(url: String): Vector<String> {
@@ -101,20 +131,20 @@ private fun readPage(url: String): Vector<String> {
 //		}
 
 
-		val tmp = Vector<String>()
+//		val tmp = Vector<String>()
 //		for (i in 0 until min(ttl.size, ip.size))
 //			if (ip[i] != null)
 //				if ((tmp.indexOf(ip[i]) == -1) and (ip[i] != "-"))
 //					tmp.addElement(ip[i] + " " + ttl[i])
-		for (s in ip) {
-			if (s != null)
-				if ((tmp.indexOf("$s $host") == -1) and (s != "-"))
-					tmp.addElement("$s $host")
-		}
 
-		tmp.sort()
-		for (i in tmp.indices)
-			recode.addElement("\n" + tmp.elementAt(i))
+		for (s in ip)
+			if (s != null)
+				if ((recode.indexOf("\n$s $host") == -1) and (s != "-"))
+					recode.addElement("\n$s $host")
+
+		recode.sort()
+//		for (i in tmp.indices)
+//			recode.addElement("\n" + tmp.elementAt(i))
 	} catch (e: Exception) {
 		e.printStackTrace()
 	}
@@ -122,68 +152,6 @@ private fun readPage(url: String): Vector<String> {
 	println("Finish")
 	recode.addElement("\n")
 	return recode
-}
-
-private fun getDocumentFromPage(url: String): Document {
-	println("Page loading...")
-	//不打印日志
-	LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
-	java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
-	java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
-
-	//模拟Chrome
-	val webClient = WebClient(BrowserVersion.CHROME)
-	val webClientOptions = webClient.options
-
-	//禁用CSS
-	webClientOptions.isCssEnabled = false
-	//启用JS 解释器
-	webClientOptions.isJavaScriptEnabled = true
-	//JS 错误时不抛出异常
-	webClientOptions.isThrowExceptionOnScriptError = false
-	webClientOptions.isThrowExceptionOnFailingStatusCode = false
-	//连接超时时间
-	webClientOptions.timeout = 2 * 1000
-
-	val page = webClient.getPage<HtmlPage>(url)
-	//等待后台运行
-	webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
-
-	println("Loaded.")
-	return Jsoup.parse(page.asXml(), url)
-}
-
-private fun append(recode: Vector<String>): Boolean {
-	if (!recode.isEmpty() && backup()) {
-		val fileWriter = File("$DesktopPath\\hosts")
-		for (i in recode.indices)
-			fileWriter.appendText(recode.elementAt(i))
-		return true
-	}
-	return false
-}
-
-private fun updateHosts(urls: Vector<String>): Boolean {
-	if (!urls.isEmpty() && backup()) {
-		try {
-			val fileWriter = FileWriter("$DesktopPath\\hosts")
-			fileWriter.write(proString())
-			fileWriter.flush()
-			fileWriter.close()
-
-			for (i in urls.indices)
-				append(readPage(urls.elementAt(i)))
-
-			//移动，但目前不能获取管理员权限写入C 盘
-			//				Files.move(bak1.toPath(), hosts.toPath());
-
-			return true
-		} catch (e: IOException) {
-			e.printStackTrace()
-		}
-
-	}
-	return false
 }
 
 private fun readHosts(): Vector<String>? {
@@ -195,7 +163,7 @@ private fun readHosts(): Vector<String>? {
 
 	val recode = Vector<String>()
 
-	val dirPath = "C:\\Windows\\System32\\drivers\\etc\\hosts"
+	val dirPath = "$path\\hosts"
 	val fileReader = File(dirPath).bufferedReader()
 	var s = fileReader.readLine()
 	//逐行读取文件记录
@@ -217,29 +185,54 @@ private fun readHosts(): Vector<String>? {
 	return if (recode.isEmpty()) null else recode
 }
 
+private fun append(recode: Vector<String>) {
+	if (!recode.isEmpty() && backup()) {
+		val fileWriter = File("$DesktopPath\\hosts")
+		for (i in recode.indices)
+			fileWriter.appendText(recode.elementAt(i))
+
+		openEtc()
+		//移动，但目前不能获取管理员权限写入C 盘
+//		Files.move(bak1.toPath(), hosts.toPath());
+	}
+}
+
+private fun updateHosts(urls: Vector<String>) {
+	if (!urls.isEmpty() && backup()) {
+		val fileWriter = File("$DesktopPath\\hosts")
+		fileWriter.writeText(proString())
+
+		for (i in urls.indices)
+			append(readPage(urls.elementAt(i)))
+
+		openEtc()
+		//移动，但目前不能获取管理员权限写入C 盘
+//		Files.move(bak1.toPath(), hosts.toPath());
+	}
+}
+
 fun menu() {
-	var s: String? = ""
+	var flag = true
 	//hosts 备份位于桌面
-	while (s != "quit") {
-		var flag: Boolean? = false
-		println("1 更新hosts (暂停服务)\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出")
-		s = readLine()
-		when (s) {
+	while (flag) {
+		flag = false
+		println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
+		when (val s = readLine()) {
 			"1" -> {
-				flag = updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
-				openEtc()
+				updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
 			}
 			"2" -> {
 				println("Input the URL:")
-				flag = readLine()?.let { readPage(it) }?.let { append(it) }
-				openEtc()
+				readLine()?.let { readPage(it) }?.let { append(it) }
 			}
 			"3" -> flag = backup()
+			else -> {
+				if (!s.equals("quit")) {
+					println("请重试")
+					flag = true
+				}
+			}
 		}
-		if (flag!!)
-			break
-		else
-			println("请重试")
 	}
 }
 
@@ -250,6 +243,4 @@ fun toGUI() {
 fun main() {
 	menu()
 	toGUI()
-//	readHosts()
-
 }
