@@ -186,18 +186,21 @@ private fun readHosts(): Vector<String>? {
 }
 
 private fun append(recode: Vector<String>) {
-	if (!recode.isEmpty() && backup()) {
-		val fileWriter = File("$DesktopPath\\hosts")
-		for (i in recode.indices)
-			fileWriter.appendText(recode.elementAt(i))
-	}
+	val fileWriter = File("$DesktopPath\\hosts")
+	for (i in recode.indices)
+		fileWriter.appendText(recode.elementAt(i))
+}
+
+private fun appendNew(recode: Vector<String>) {
+	if (!recode.isEmpty() && backup())
+		append(recode)
+	openEtc()
 }
 
 private fun updateHosts(urls: Vector<String>) {
 	if (!urls.isEmpty() && backup()) {
 		val fileWriter = File("$DesktopPath\\hosts")
 		fileWriter.writeText(proString())
-
 		for (i in urls.indices)
 			append(readPage(urls.elementAt(i)))
 		openEtc()
@@ -218,8 +221,7 @@ fun menu() {
 			}
 			"2" -> {
 				println("Input the URL:")
-				readLine()?.let { readPage(it) }?.let { append(it) }
-				openEtc()
+				readLine()?.let { readPage(it) }?.let { appendNew(it) }
 			}
 			"3" -> flag = backup()
 			else -> {

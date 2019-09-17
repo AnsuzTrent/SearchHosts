@@ -273,16 +273,20 @@ public class host {
 	}
 
 	private static void Append(Vector<String> recode) {
-		if (!recode.isEmpty() && Backup()) {
-			try {
-				FileWriter fileWriter1 = new FileWriter(DesktopPath + "\\hosts", true);
-				for (int i = 0; i < recode.size(); i++)
-					fileWriter1.write(recode.elementAt(i));
-				fileWriter1.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			FileWriter fileWriter1 = new FileWriter(DesktopPath + "\\hosts", true);
+			for (int i = 0; i < recode.size(); i++)
+				fileWriter1.write(recode.elementAt(i));
+			fileWriter1.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
+
+	private static void AppendNew(Vector<String> recode) {
+		if (!recode.isEmpty() && Backup())
+			Append(recode);
+		OpenEtc();
 	}
 
 	private static void UpdateHosts(Vector<String> urls) {
@@ -319,8 +323,7 @@ public class host {
 					break;
 				case "2":
 					System.out.println("Input the URL:");
-					Append(ReadPage(sc.next()));
-					OpenEtc();
+					AppendNew(ReadPage(sc.next()));
 					break;
 				case "3":
 					Backup();
