@@ -311,10 +311,11 @@ public class host {
 	private static void Menu() {
 		//hosts 备份位于桌面
 		Scanner sc = new Scanner(System.in);
-		while (true) {
+		String s = "";
+		while (!s.equals("quit")) {
 			Boolean flag = false;
-			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts");
-			String s = sc.nextLine();
+			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出");
+			s = sc.nextLine();
 			switch (s) {
 				case "1":
 					flag = UpdateHosts(Objects.requireNonNull(ReadHosts()));
@@ -336,7 +337,12 @@ public class host {
 		}
 	}
 
+	private static void GUI() {
+
+	}
+
 	public static void main(String[] args) {
 		host.Menu();
+		GUI();
 	}
 }

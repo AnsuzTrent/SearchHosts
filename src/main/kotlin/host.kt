@@ -155,16 +155,10 @@ private fun getDocumentFromPage(url: String): Document {
 
 private fun append(recode: Vector<String>): Boolean {
 	if (!recode.isEmpty() && backup()) {
-		try {
-			val fileWriter1 = FileWriter("$DesktopPath\\hosts", true)
-			for (i in recode.indices)
-				fileWriter1.write(recode.elementAt(i))
-			fileWriter1.close()
-			return true
-		} catch (e: IOException) {
-			e.printStackTrace()
-		}
-
+		val fileWriter = File("$DesktopPath\\hosts")
+		for (i in recode.indices)
+			fileWriter.appendText(recode.elementAt(i))
+		return true
 	}
 	return false
 }
@@ -192,53 +186,52 @@ private fun updateHosts(urls: Vector<String>): Boolean {
 	return false
 }
 
-//private fun readHosts(): Vector<String>? {
-//	val recode = Vector<String>()
-//	try {
-//		if (!System.getProperty("os.name").contains("indows")) {
-//			println("目前仅支持Windows 2000/XP 及以上版本")
-//			return null
-//		}
-//		//听说其在Win98,win me 中位于/Windows 下？
-//		val dirPath = "C:\\Windows\\System32\\drivers\\etc\\hosts"
-//		val fileReader = FileReader(dirPath)
-//		val bufferedReader = BufferedReader(fileReader)
-//		var s: String
-//		//逐行读取文件记录
-//		while ((s = bufferedReader.readLine()) != null) {
-//			//过滤# 开头的注释以及空行
-//			if (s.startsWith("#") || s == "")
-//				continue
-//			//以空格作为分割点
-//			val fromFile = s.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-//			//过滤重复
-//			if (recode.indexOf(fromFile[1]) == -1)
-//				recode.addElement(fromFile[1])
-//		}
-//		fileReader.close()
-//		bufferedReader.close()
-//	} catch (e: IOException) {
-//		e.printStackTrace()
-//	}
-//
-//	recode.sort()
-//	return if (recode.isEmpty()) null else recode
-//}
+private fun readHosts(): Vector<String>? {
+	if (!System.getProperty("os.name").contains("indows")) {
+		println("目前仅支持Windows 2000/XP 及以上版本")
+		return null
+	}
+	//听说其在Win98,win me 中位于/Windows 下？
 
-private fun menu() {
+	val recode = Vector<String>()
+
+	val dirPath = "C:\\Windows\\System32\\drivers\\etc\\hosts"
+	val fileReader = File(dirPath).bufferedReader()
+	var s = fileReader.readLine()
+	//逐行读取文件记录
+	while (s != null) {
+		//过滤# 开头的注释以及空行
+		if (s.startsWith("#") || s == "") {
+			s = fileReader.readLine()
+			continue
+		}
+		//以空格作为分割点
+		val fromFile = s.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+		//过滤重复
+		if (recode.indexOf(fromFile[1]) == -1)
+			recode.addElement(fromFile[1])
+		s = fileReader.readLine()
+	}
+	fileReader.close()
+	recode.sort()
+	return if (recode.isEmpty()) null else recode
+}
+
+fun menu() {
+	var s: String? = ""
 	//hosts 备份位于桌面
-	val sc = Scanner(System.`in`)
-	while (true) {
+	while (s != "quit") {
 		var flag: Boolean? = false
-		println("1 更新hosts (暂停服务)\n" + "2 新增URL\n" + "3 备份hosts")
-		when (sc.nextLine()) {
+		println("1 更新hosts (暂停服务)\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出")
+		s = readLine()
+		when (s) {
 			"1" -> {
-//				flag = updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
-//				openEtc()
+				flag = updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
+				openEtc()
 			}
 			"2" -> {
 				println("Input the URL:")
-				flag = append(readPage(sc.next()))
+				flag = readLine()?.let { readPage(it) }?.let { append(it) }
 				openEtc()
 			}
 			"3" -> flag = backup()
@@ -250,6 +243,13 @@ private fun menu() {
 	}
 }
 
+fun toGUI() {
+
+}
+
 fun main() {
 	menu()
+	toGUI()
+//	readHosts()
+
 }
