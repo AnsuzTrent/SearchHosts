@@ -7,6 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.swing.filechooser.FileSystemView;
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -212,6 +213,14 @@ public class host {
 		return Jsoup.parse(page.asXml(), url);
 	}
 
+	private static void OpenEtc() {
+		try {
+			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc\\"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static Vector<String> ReadPage(String url) {
 		String AimURL = "http://tool.chinaz.com/dns?type=1&host=" + url + "&ip=";
 		//设置代理
@@ -229,7 +238,6 @@ public class host {
 			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split(" ");
 			String[] IP = new String[IPTmp.length];
 			for (int i = 0, j = 0; i < IPTmp.length; i++) {
-//				[^0-9.-]
 				IPTmp[i] = IPTmp[i].replaceAll("[^\\d{1,3}.]", "").replaceAll("\\.\\.+", "");
 				if (IPTmp[i].equals(""))
 					continue;
@@ -303,17 +311,20 @@ public class host {
 	private static void Menu() {
 		//hosts 备份位于桌面
 		Scanner sc = new Scanner(System.in);
-		while (true) {
+		String s = "";
+		while (!s.equals("quit")) {
 			Boolean flag = false;
-			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts");
-			String s = sc.nextLine();
+			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出");
+			s = sc.nextLine();
 			switch (s) {
 				case "1":
 					flag = UpdateHosts(Objects.requireNonNull(ReadHosts()));
+					OpenEtc();
 					break;
 				case "2":
 					System.out.println("Input the URL:");
 					flag = Append(ReadPage(sc.next()));
+					OpenEtc();
 					break;
 				case "3":
 					flag = Backup();
@@ -326,7 +337,12 @@ public class host {
 		}
 	}
 
+	private static void GUI() {
+
+	}
+
 	public static void main(String[] args) {
 		host.Menu();
+		GUI();
 	}
 }
