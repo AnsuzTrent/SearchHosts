@@ -190,10 +190,6 @@ private fun append(recode: Vector<String>) {
 		val fileWriter = File("$DesktopPath\\hosts")
 		for (i in recode.indices)
 			fileWriter.appendText(recode.elementAt(i))
-
-		openEtc()
-		//移动，但目前不能获取管理员权限写入C 盘
-//		Files.move(bak1.toPath(), hosts.toPath());
 	}
 }
 
@@ -204,7 +200,6 @@ private fun updateHosts(urls: Vector<String>) {
 
 		for (i in urls.indices)
 			append(readPage(urls.elementAt(i)))
-
 		openEtc()
 		//移动，但目前不能获取管理员权限写入C 盘
 //		Files.move(bak1.toPath(), hosts.toPath());
@@ -224,6 +219,7 @@ fun menu() {
 			"2" -> {
 				println("Input the URL:")
 				readLine()?.let { readPage(it) }?.let { append(it) }
+				openEtc()
 			}
 			"3" -> flag = backup()
 			else -> {

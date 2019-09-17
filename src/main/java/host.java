@@ -279,9 +279,6 @@ public class host {
 				for (int i = 0; i < recode.size(); i++)
 					fileWriter1.write(recode.elementAt(i));
 				fileWriter1.close();
-				OpenEtc();
-				//移动，但目前不能获取管理员权限写入C 盘
-//				Files.move(bak1.toPath(), hosts.toPath());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -323,6 +320,7 @@ public class host {
 				case "2":
 					System.out.println("Input the URL:");
 					Append(ReadPage(sc.next()));
+					OpenEtc();
 					break;
 				case "3":
 					Backup();
