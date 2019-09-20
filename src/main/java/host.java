@@ -364,14 +364,14 @@ public class host {
 		backup.add(updateHosts);
 
 
-		jf.add(update, BorderLayout.NORTH);
-		jf.add(add, BorderLayout.CENTER);
+		jf.add(update, BorderLayout.WEST);
+		jf.add(add, BorderLayout.NORTH);
 		jf.add(backup, BorderLayout.SOUTH);
 
 		//大小
 		jf.setSize(500, 500);
 		//是否可改变大小
-		jf.setResizable(false);
+//		jf.setResizable(false);
 		//出现位置居中
 		jf.setLocationRelativeTo(null);
 //		jf.setLocation(1200, 200);
@@ -382,7 +382,7 @@ public class host {
 	}
 
 	public static void main(String[] args) {
-//		Menu();
-		GUI();
+		Menu();
+//		GUI();
 	}
 }

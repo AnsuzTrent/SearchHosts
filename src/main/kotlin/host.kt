@@ -4,12 +4,17 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage
 import org.apache.commons.logging.LogFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.awt.BorderLayout
 import java.awt.Desktop
+import java.awt.Dimension
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
 import java.util.logging.Level
+import javax.swing.JFrame
+import javax.swing.JScrollPane
+import javax.swing.JTextArea
 import javax.swing.filechooser.FileSystemView
 
 private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
@@ -235,10 +240,20 @@ fun menu() {
 }
 
 fun toGUI() {
+	val textArea = JTextArea()
+	textArea.text = "Hello, Kotlin/Swing world"
+	val scrollPane = JScrollPane(textArea)
 
+	val frame = JFrame("Hello, Kotlin/Swing")
+
+	frame.contentPane.add(scrollPane, BorderLayout.CENTER)
+	frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+	frame.size = Dimension(600, 400)
+	frame.setLocationRelativeTo(null)
+	frame.isVisible = true
 }
 
 fun main() {
 	menu()
-	toGUI()
+//	toGUI()
 }
