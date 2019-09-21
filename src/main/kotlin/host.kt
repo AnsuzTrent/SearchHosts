@@ -17,9 +17,38 @@ import java.util.logging.Level
 import javax.swing.*
 import javax.swing.filechooser.FileSystemView
 
+fun main() {
+//	menu()
+	GUI()
+}
+
+val updateHost: () -> Unit = { updateHosts(Objects.requireNonNull<Vector<String>>(readHosts())) }
+
+private fun appendNew(str: String) {
+	val recode = readPage(str)
+	if (!recode.isEmpty() && backup())
+		append(recode)
+	openEtc()
+}
+
+private fun backup(): Boolean {
+	try {
+		val hosts = File("$path\\hosts")
+		//备份hosts
+		val backup = File("$DesktopPath\\hosts.bak")
+		if (backup.exists())
+			Files.delete(backup.toPath())
+		Files.copy(hosts.toPath(), backup.toPath())
+		return true
+	} catch (e: IOException) {
+		e.printStackTrace()
+	}
+	return false
+}
+
 private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
 
-private const val path = "C:\\Windows\\System32\\drivers\\etc\\"
+private const val path = "C:\\Windows\\System32\\drivers\\etc"
 
 private val proString: () -> String = {
 	"# Copyright (c) 1993-2009 Microsoft Corp.\n" + "#\n" +
@@ -40,21 +69,6 @@ private val proString: () -> String = {
 }
 
 private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(path)) }
-
-private fun backup(): Boolean {
-	try {
-		val hosts = File("$path\\hosts")
-		//备份hosts
-		val backup = File("$DesktopPath\\hosts.bak")
-		if (backup.exists())
-			Files.delete(backup.toPath())
-		Files.copy(hosts.toPath(), backup.toPath())
-		return true
-	} catch (e: IOException) {
-		e.printStackTrace()
-	}
-	return false
-}
 
 private fun getDocumentFromPage(url: String): Document {
 	println("Page loading...")
@@ -196,13 +210,6 @@ private fun append(recode: Vector<String>) {
 		fileWriter.appendText(recode.elementAt(i))
 }
 
-private fun appendNew(str: String) {
-	val recode = readPage(str)
-	if (!recode.isEmpty() && backup())
-		append(recode)
-	openEtc()
-}
-
 private fun updateHosts(urls: Vector<String>) {
 	if (!urls.isEmpty() && backup()) {
 		val fileWriter = File("$DesktopPath\\hosts")
@@ -214,9 +221,6 @@ private fun updateHosts(urls: Vector<String>) {
 //		Files.move(bak1.toPath(), hosts.toPath());
 	}
 }
-
-val updateHost: () -> Unit = { updateHosts(Objects.requireNonNull<Vector<String>>(readHosts())) }
-
 
 fun menu() {
 	var flag = true
@@ -329,9 +333,4 @@ class GUI internal constructor() : JFrame(), ActionListener {
 			}
 		}
 	}
-}
-
-fun main() {
-//	menu()
-	GUI()
 }

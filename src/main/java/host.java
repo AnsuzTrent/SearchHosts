@@ -20,7 +20,40 @@ import java.util.Vector;
 import java.util.logging.Level;
 
 public class host {
+
 	private static String DesktopPath = FileSystemView.getFileSystemView().getHomeDirectory().getPath();
+
+	public static void main(String[] args) {
+//		Menu();
+		new GUI();
+	}
+
+	private static Boolean Backup() {
+		File hosts = new File("C:\\Windows\\System32\\drivers\\etc\\hosts");
+		//备份hosts
+		File backup = new File(DesktopPath + "\\hosts.bak");
+		try {
+			if (backup.exists())
+				Files.delete(backup.toPath());
+			Files.copy(hosts.toPath(), backup.toPath());
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	private static void AppendNew(String str) {
+		Vector<String> recode = ReadPage(str);
+		if (!recode.isEmpty() && Backup())
+			Append(recode);
+		OpenEtc();
+	}
+
+	private static void Update() {
+		UpdateHosts(Objects.requireNonNull(host.ReadHosts()));
+	}
 
 	host() {
 		/*
@@ -136,26 +169,10 @@ public class host {
 
 	private static void OpenEtc() {
 		try {
-			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc\\"));
+			Desktop.getDesktop().open(new File("C:\\Windows\\System32\\drivers\\etc"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private static Boolean Backup() {
-		File hosts = new File("C:\\Windows\\System32\\drivers\\etc\\hosts");
-		//备份hosts
-		File backup = new File(DesktopPath + "\\hosts.bak");
-		try {
-			if (backup.exists())
-				Files.delete(backup.toPath());
-			Files.copy(hosts.toPath(), backup.toPath());
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return false;
 	}
 
 	private static Document getDocumentFromPage(String url) throws IOException {
@@ -285,13 +302,6 @@ public class host {
 		}
 	}
 
-	private static void AppendNew(String str) {
-		Vector<String> recode = ReadPage(str);
-		if (!recode.isEmpty() && Backup())
-			Append(recode);
-		OpenEtc();
-	}
-
 	private static void UpdateHosts(Vector<String> urls) {
 		if (!urls.isEmpty() && Backup()) {
 			try {
@@ -310,10 +320,6 @@ public class host {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private static void Update() {
-		UpdateHosts(Objects.requireNonNull(host.ReadHosts()));
 	}
 
 	private static void Menu() {
@@ -342,11 +348,6 @@ public class host {
 					}
 			}
 		}
-	}
-
-	public static void main(String[] args) {
-//		Menu();
-		new GUI();
 	}
 
 	static class GUI extends JFrame implements ActionListener {
