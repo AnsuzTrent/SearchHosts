@@ -4,12 +4,17 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage
 import org.apache.commons.logging.LogFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.awt.BorderLayout
 import java.awt.Desktop
+import java.awt.GridLayout
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
 import java.util.logging.Level
+import javax.swing.*
 import javax.swing.filechooser.FileSystemView
 
 private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
@@ -191,7 +196,8 @@ private fun append(recode: Vector<String>) {
 		fileWriter.appendText(recode.elementAt(i))
 }
 
-private fun appendNew(recode: Vector<String>) {
+private fun appendNew(str: String) {
+	val recode = readPage(str)
 	if (!recode.isEmpty() && backup())
 		append(recode)
 	openEtc()
@@ -209,6 +215,9 @@ private fun updateHosts(urls: Vector<String>) {
 	}
 }
 
+val updateHost: () -> Unit = { updateHosts(Objects.requireNonNull<Vector<String>>(readHosts())) }
+
+
 fun menu() {
 	var flag = true
 	//hosts 备份位于桌面
@@ -217,11 +226,11 @@ fun menu() {
 		println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
 		when (val s = readLine()) {
 			"1" -> {
-				updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
+				updateHost()
 			}
 			"2" -> {
 				println("Input the URL:")
-				readLine()?.let { readPage(it) }?.let { appendNew(it) }
+				readLine()?.let { appendNew(it) }
 			}
 			"3" -> flag = backup()
 			else -> {
@@ -229,6 +238,94 @@ fun menu() {
 					println("请重试")
 					flag = true
 				}
+			}
+		}
+	}
+}
+
+class GUI internal constructor() : JFrame(), ActionListener {
+	private val updateHosts: JButton
+	private val search: JButton
+	private val backupHosts: JButton
+	private val hosts: JTextField
+
+	init {
+		//左侧栏
+		val textArea = JTextArea("广告位招租")
+		//设置只读
+		textArea.isEditable = false
+		val update = JPanel()
+		update.add(textArea)
+		add(update, BorderLayout.WEST)
+
+		//中栏
+		val textA = JTextArea("到时候输出记录")
+		//设置只读
+		textA.isEditable = false
+		val recode = JPanel()
+		recode.layout = GridLayout(1, 1)
+		recode.add(textA)
+		add(recode, BorderLayout.CENTER)
+
+		//顶栏
+		hosts = JTextField()
+		search = JButton("搜索")
+		search.addActionListener(this)
+		val append = JPanel()
+		append.layout = GridLayout(1, 2)
+		append.add(hosts)
+		append.add(search)
+		add(append, BorderLayout.NORTH)
+
+		//底栏
+		backupHosts = JButton("备份")
+		backupHosts.addActionListener(this)
+		updateHosts = JButton("更新")
+		updateHosts.addActionListener(this)
+		val backup = JPanel()
+		backup.layout = GridLayout(1, 2)
+		backup.add(backupHosts)
+		backup.add(updateHosts)
+		add(backup, BorderLayout.SOUTH)
+
+		title = "test"
+		//大小
+		setSize(500, 500)
+		//是否可改变大小
+		//		setResizable(false);
+		//出现位置居中
+		setLocationRelativeTo(null)
+		//		setLocation(1200, 200);
+		//关闭窗口按钮
+		defaultCloseOperation = EXIT_ON_CLOSE
+		//是否可见
+		isVisible = true
+	}
+
+	private fun setButtonStatus(a: JButton, b: JButton, f: Boolean) {
+		a.isEnabled = f
+		b.isEnabled = f
+	}
+
+	override fun actionPerformed(e: ActionEvent) {
+		when {
+			e.source === search -> {
+				setButtonStatus(backupHosts, updateHosts, false)
+				appendNew(hosts.text)
+				JOptionPane.showMessageDialog(null, "成功")
+				setButtonStatus(backupHosts, updateHosts, true)
+			}
+			e.source === backupHosts -> {
+				setButtonStatus(search, updateHosts, false)
+				backup()
+				JOptionPane.showMessageDialog(null, "成功")
+				setButtonStatus(search, updateHosts, true)
+			}
+			else -> {
+				setButtonStatus(search, backupHosts, false)
+				updateHost()
+				JOptionPane.showMessageDialog(null, "成功")
+				setButtonStatus(search, backupHosts, true)
 			}
 		}
 	}

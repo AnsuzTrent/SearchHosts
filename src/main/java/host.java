@@ -6,8 +6,11 @@ import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -282,7 +285,8 @@ public class host {
 		}
 	}
 
-	private static void AppendNew(Vector<String> recode) {
+	private static void AppendNew(String str) {
+		Vector<String> recode = ReadPage(str);
 		if (!recode.isEmpty() && Backup())
 			Append(recode);
 		OpenEtc();
@@ -308,6 +312,10 @@ public class host {
 		}
 	}
 
+	private static void Update() {
+		UpdateHosts(Objects.requireNonNull(host.ReadHosts()));
+	}
+
 	private static void Menu() {
 		//hosts 备份位于桌面
 		Scanner sc = new Scanner(System.in);
@@ -318,11 +326,11 @@ public class host {
 			String s = sc.nextLine();
 			switch (s) {
 				case "1":
-					UpdateHosts(Objects.requireNonNull(ReadHosts()));
+					Update();
 					break;
 				case "2":
 					System.out.println("Input the URL:");
-					AppendNew(ReadPage(sc.next()));
+					AppendNew(sc.next());
 					break;
 				case "3":
 					Backup();
@@ -340,4 +348,88 @@ public class host {
 //		Menu();
 		new GUI();
 	}
+
+	static class GUI extends JFrame implements ActionListener {
+		private JButton updateHosts, search, backupHosts;
+		private JTextField hosts;
+
+		GUI() {
+			//左侧栏
+			JTextArea textArea = new JTextArea("广告位招租");
+			//设置只读
+			textArea.setEditable(false);
+			JPanel update = new JPanel();
+			update.add(textArea);
+			add(update, BorderLayout.WEST);
+
+			//中栏
+			JTextArea textA = new JTextArea("到时候输出记录");
+			//设置只读
+			textA.setEditable(false);
+			JPanel recode = new JPanel();
+			recode.setLayout(new GridLayout(1, 1));
+			recode.add(textA);
+			add(recode, BorderLayout.CENTER);
+
+			//顶栏
+			hosts = new JTextField();
+			search = new JButton("搜索");
+			search.addActionListener(this);
+			JPanel append = new JPanel();
+			append.setLayout(new GridLayout(1, 2));
+			append.add(hosts);
+			append.add(search);
+			add(append, BorderLayout.NORTH);
+
+			//底栏
+			backupHosts = new JButton("备份");
+			backupHosts.addActionListener(this);
+			updateHosts = new JButton("更新");
+			updateHosts.addActionListener(this);
+			JPanel backup = new JPanel();
+			backup.setLayout(new GridLayout(1, 2));
+			backup.add(backupHosts);
+			backup.add(updateHosts);
+			add(backup, BorderLayout.SOUTH);
+
+			setTitle("test");
+			//大小
+			setSize(500, 500);
+			//是否可改变大小
+//		setResizable(false);
+			//出现位置居中
+			setLocationRelativeTo(null);
+//		setLocation(1200, 200);
+			//关闭窗口按钮
+			setDefaultCloseOperation(EXIT_ON_CLOSE);
+			//是否可见
+			setVisible(true);
+		}
+
+		private static void setButtonStatus(JButton a, JButton b, boolean f) {
+			a.setEnabled(f);
+			b.setEnabled(f);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() == search) {
+				setButtonStatus(backupHosts, updateHosts, false);
+				host.AppendNew(hosts.getText());
+				JOptionPane.showMessageDialog(null, "成功");
+				setButtonStatus(backupHosts, updateHosts, true);
+			} else if (e.getSource() == backupHosts) {
+				setButtonStatus(search, updateHosts, false);
+				host.Backup();
+				JOptionPane.showMessageDialog(null, "成功");
+				setButtonStatus(search, updateHosts, true);
+			} else {
+				setButtonStatus(search, backupHosts, false);
+				host.Update();
+				JOptionPane.showMessageDialog(null, "成功");
+				setButtonStatus(search, backupHosts, true);
+			}
+		}
+	}
+
 }
