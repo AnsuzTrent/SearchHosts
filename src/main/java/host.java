@@ -6,7 +6,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.*;
@@ -337,52 +336,8 @@ public class host {
 		}
 	}
 
-	private static void GUI() {
-		JFrame jf = new JFrame("test");
-//		Container container = jf.getContentPane();
-
-		String s = "随便写点什么避免尴尬";
-		JPanel update = new JPanel();
-		JButton updateHosts = new JButton("更新");
-		update.setLayout(new GridLayout(1, 1));
-		JTextArea textArea = new JTextArea(s);
-		textArea.setEditable(false);
-		update.add(textArea);
-
-		JPanel add = new JPanel();
-		JTextField hosts = new JTextField();
-		JButton search = new JButton("搜索");
-		String str = hosts.getText();
-		add.setLayout(new GridLayout(1, 2));
-		add.add(hosts);
-		add.add(search);
-
-		JPanel backup = new JPanel();
-		JButton backupHosts = new JButton("备份");
-		backup.setLayout(new GridLayout(1, 2));
-		backup.add(backupHosts);
-		backup.add(updateHosts);
-
-
-		jf.add(update, BorderLayout.WEST);
-		jf.add(add, BorderLayout.NORTH);
-		jf.add(backup, BorderLayout.SOUTH);
-
-		//大小
-		jf.setSize(500, 500);
-		//是否可改变大小
-//		jf.setResizable(false);
-		//出现位置居中
-		jf.setLocationRelativeTo(null);
-//		jf.setLocation(1200, 200);
-		//关闭窗口按钮
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//是否可见
-		jf.setVisible(true);
-	}
-
 	public static void main(String[] args) {
-		Menu();
-//		GUI();
+//		Menu();
+		new GUI();
 	}
 }
