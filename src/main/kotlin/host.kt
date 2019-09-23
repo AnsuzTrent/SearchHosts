@@ -123,21 +123,19 @@ private fun readPage(url: String): Vector<String> {
 		val host = doc.getElementById("host").attr("value")
 
 		val ipTmp =
-			doc.getElementsByClass("w60-0 tl").text().split(" ".toRegex()).dropLastWhile { it.isEmpty() }
+			doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]".toRegex()).dropLastWhile { it.isEmpty() }
 				.toTypedArray()
 		val ip = arrayOfNulls<String>(ipTmp.size)
 		run {
 			var i = 0
 			var j = 0
 			while (i < ipTmp.size) {
-				ipTmp[i] = ipTmp[i].replace("[^\\d{1,3}.]".toRegex(), "").replace("\\.\\.+".toRegex(), "")
+				ipTmp[i] = ipTmp[i].replace("([ \\-]|\\.\\.+)".toRegex(), "")
 				if (ipTmp[i] == "") {
 					i++
 					continue
 				}
-				ip[j] = ipTmp[i]
-				j++
-				i++
+				ip[j++] = ipTmp[i++]
 			}
 		}
 
@@ -337,7 +335,7 @@ class GUI internal constructor() : JFrame(), ActionListener {
 			else -> {
 				setButtonStatus(search, backupHosts, false)
 				updateHost()
-				JOptionPane.showMessageDialog(null, "成功")
+//				JOptionPane.showMessageDialog(null, "成功")
 				setButtonStatus(search, backupHosts, true)
 			}
 		}

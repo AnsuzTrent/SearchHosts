@@ -218,14 +218,13 @@ public class host {
 			System.out.println("The string is dealing...");
 			String host = doc.getElementById("host").attr("value");
 
-			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split(" ");
+			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]");
 			String[] IP = new String[IPTmp.length];
 			for (int i = 0, j = 0; i < IPTmp.length; i++) {
-				IPTmp[i] = IPTmp[i].replaceAll("[^\\d{1,3}.]", "").replaceAll("\\.\\.+", "");
+				IPTmp[i] = IPTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
 				if (IPTmp[i].equals(""))
 					continue;
-				IP[j] = IPTmp[i];
-				j++;
+				IP[j++] = IPTmp[i];
 			}
 
 //			String[] str = doc.getElementsByClass("w14-0").text().split(" ");
