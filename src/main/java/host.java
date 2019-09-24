@@ -46,6 +46,11 @@ public class host {
 
 	private static void AppendNew(String str) {
 		Vector<String> recode = ReadPage(str);
+		try {
+			Files.copy(new File("C:\\Windows\\System32\\drivers\\etc\\hosts").toPath(), new File(DesktopPath + "\\hosts").toPath());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		if (!recode.isEmpty() && Backup())
 			Append(recode);
 		OpenEtc();
@@ -416,17 +421,14 @@ public class host {
 			if (e.getSource() == search) {
 				setButtonStatus(backupHosts, updateHosts, false);
 				host.AppendNew(hosts.getText());
-				JOptionPane.showMessageDialog(null, "成功");
 				setButtonStatus(backupHosts, updateHosts, true);
 			} else if (e.getSource() == backupHosts) {
 				setButtonStatus(search, updateHosts, false);
 				host.Backup();
-				JOptionPane.showMessageDialog(null, "成功");
 				setButtonStatus(search, updateHosts, true);
 			} else {
 				setButtonStatus(search, backupHosts, false);
 				host.Update();
-				JOptionPane.showMessageDialog(null, "成功");
 				setButtonStatus(search, backupHosts, true);
 			}
 		}

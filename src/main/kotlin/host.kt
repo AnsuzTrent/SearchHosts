@@ -26,6 +26,7 @@ val updateHost: () -> Unit = { updateHosts(Objects.requireNonNull<Vector<String>
 
 private fun appendNew(str: String) {
 	val recode = readPage(str)
+	Files.copy(File("$path\\hosts").toPath(), File("$DesktopPath\\hosts").toPath())
 	if (!recode.isEmpty() && backup())
 		append(recode)
 	openEtc()
@@ -323,19 +324,16 @@ class GUI internal constructor() : JFrame(), ActionListener {
 			e.source === search -> {
 				setButtonStatus(backupHosts, updateHosts, false)
 				appendNew(hosts.text)
-				JOptionPane.showMessageDialog(null, "成功")
 				setButtonStatus(backupHosts, updateHosts, true)
 			}
 			e.source === backupHosts -> {
 				setButtonStatus(search, updateHosts, false)
 				backup()
-				JOptionPane.showMessageDialog(null, "成功")
 				setButtonStatus(search, updateHosts, true)
 			}
 			else -> {
 				setButtonStatus(search, backupHosts, false)
 				updateHost()
-//				JOptionPane.showMessageDialog(null, "成功")
 				setButtonStatus(search, backupHosts, true)
 			}
 		}
