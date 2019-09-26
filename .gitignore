@@ -4,6 +4,7 @@
 
 .gradle
 /build/
+/exe
 
 # Ignore Gradle GUI config
 gradle-app.setting

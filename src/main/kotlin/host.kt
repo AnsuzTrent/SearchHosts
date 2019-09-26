@@ -22,7 +22,22 @@ fun main() {
 	GUI()
 }
 
-val updateHost: () -> Unit = { updateHosts(Objects.requireNonNull<Vector<String>>(readHosts())) }
+fun update() {
+	val urls = Objects.requireNonNull<Vector<String>>(readHosts())
+	if (!urls.isEmpty() && backup()) {
+		val fileWriter = File("$DesktopPath\\hosts")
+		fileWriter.writeText(proString())
+
+
+		for (i in urls.indices)
+			append(readPage(urls.elementAt(i)))
+
+
+		openEtc()
+		//移动，但目前不能获取管理员权限写入C 盘
+//		Files.move(bak1.toPath(), hosts.toPath());
+	}
+}
 
 private fun appendNew(str: String) {
 	val recode = readPage(str)
@@ -218,18 +233,6 @@ private fun append(recode: Vector<String>) {
 		fileWriter.appendText(recode.elementAt(i))
 }
 
-private fun updateHosts(urls: Vector<String>) {
-	if (!urls.isEmpty() && backup()) {
-		val fileWriter = File("$DesktopPath\\hosts")
-		fileWriter.writeText(proString())
-		for (i in urls.indices)
-			append(readPage(urls.elementAt(i)))
-		openEtc()
-		//移动，但目前不能获取管理员权限写入C 盘
-//		Files.move(bak1.toPath(), hosts.toPath());
-	}
-}
-
 fun menu() {
 	var flag = true
 	//hosts 备份位于桌面
@@ -238,7 +241,7 @@ fun menu() {
 		println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
 		when (val s = readLine()) {
 			"1" -> {
-				updateHost()
+				update()
 			}
 			"2" -> {
 				println("Input the URL:")
@@ -304,37 +307,37 @@ class GUI internal constructor() : JFrame(), ActionListener {
 		//大小
 		setSize(500, 500)
 		//是否可改变大小
-		//		setResizable(false);
+//		isResizable = false
 		//出现位置居中
 		setLocationRelativeTo(null)
-		//		setLocation(1200, 200);
+//		setLocation(1200, 200)
 		//关闭窗口按钮
 		defaultCloseOperation = EXIT_ON_CLOSE
 		//是否可见
 		isVisible = true
 	}
 
-	private fun setButtonStatus(a: JButton, b: JButton, f: Boolean) {
-		a.isEnabled = f
-		b.isEnabled = f
+	private fun setButtonStatus(f: Boolean, vararg a: JButton) {
+		for (button in a)
+			button.isEnabled = f
 	}
 
 	override fun actionPerformed(e: ActionEvent) {
 		when {
 			e.source === search -> {
-				setButtonStatus(backupHosts, updateHosts, false)
+				setButtonStatus(false, backupHosts, updateHosts)
 				appendNew(hosts.text)
-				setButtonStatus(backupHosts, updateHosts, true)
+				setButtonStatus(true, backupHosts, updateHosts)
 			}
 			e.source === backupHosts -> {
-				setButtonStatus(search, updateHosts, false)
+				setButtonStatus(false, search, updateHosts)
 				backup()
-				setButtonStatus(search, updateHosts, true)
+				setButtonStatus(true, search, updateHosts)
 			}
 			else -> {
-				setButtonStatus(search, backupHosts, false)
-				updateHost()
-				setButtonStatus(search, backupHosts, true)
+				setButtonStatus(false, search, backupHosts)
+				update()
+				setButtonStatus(true, search, backupHosts)
 			}
 		}
 	}
