@@ -13,6 +13,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.logging.Level
 import javax.swing.*
 import javax.swing.filechooser.FileSystemView
@@ -28,10 +29,18 @@ fun update() {
 		val fileWriter = File("$DesktopPath\\hosts")
 		fileWriter.writeText(proString())
 
-
+		//设定线程池
+		val pool = Executors.newFixedThreadPool(8)
 		for (i in urls.indices)
-			append(readPage(urls.elementAt(i)))
+			pool.execute(Thread {
+				println(urls.elementAt(i))
 
+				append(readPage(urls.elementAt(i)))
+			})
+		pool.shutdown()
+		while (true)
+			if (pool.isTerminated)
+				break
 
 		openEtc()
 		//移动，但目前不能获取管理员权限写入C 盘
@@ -96,7 +105,6 @@ private val proString: () -> String = {
 private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(path)) }
 
 private fun getDocumentFromPage(url: String): Document {
-	println("Page loading...")
 	//不打印日志
 	LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
 	java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
@@ -120,7 +128,6 @@ private fun getDocumentFromPage(url: String): Document {
 	//等待后台运行
 	webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
 
-	println("Loaded.")
 	return Jsoup.parse(page.asXml(), url)
 }
 
@@ -135,7 +142,6 @@ private fun readPage(url: String): Vector<String> {
 	try {
 		val doc = getDocumentFromPage(aimURL)
 
-		println("The string is dealing...")
 		val host = doc.getElementById("host").attr("value")
 
 		val ipTmp =
@@ -191,7 +197,6 @@ private fun readPage(url: String): Vector<String> {
 		e.printStackTrace()
 	}
 
-	println("Finish")
 	recode.addElement("\n")
 	return recode
 }

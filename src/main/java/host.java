@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class host {
@@ -65,10 +67,19 @@ public class host {
 				fileWriter.flush();
 				fileWriter.close();
 
-
-				for (int i = 0; i < urls.size(); i++)
-					Append(ReadPage(urls.elementAt(i)));
-
+				//设定线程池
+				ExecutorService pool = Executors.newFixedThreadPool(8);
+				for (int i = 0; i < urls.size(); i++) {
+					int finalI = i;
+					pool.execute(new Thread(() -> {
+						System.out.println(urls.elementAt(finalI));
+						Append(ReadPage(urls.elementAt(finalI)));
+					}));
+				}
+				pool.shutdown();
+				while (true)
+					if (pool.isTerminated())
+						break;
 
 				OpenEtc();
 				//移动，但目前不能获取管理员权限写入C 盘
@@ -113,7 +124,6 @@ public class host {
 	}
 
 	private static Document getDocumentFromPage(String url) throws IOException {
-		System.out.println("Page loading...");
 		//不打印日志
 		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
@@ -137,7 +147,6 @@ public class host {
 		//等待后台运行
 		webClient.waitForBackgroundJavaScript(10 * 1000);
 
-		System.out.println("Loaded.");
 		return Jsoup.parse(page.asXml(), url);
 	}
 
@@ -152,7 +161,6 @@ public class host {
 		try {
 			Document doc = getDocumentFromPage(AimURL);
 
-			System.out.println("The string is dealing...");
 			String host = doc.getElementById("host").attr("value");
 
 			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]");
@@ -190,7 +198,6 @@ public class host {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Finish");
 		recode.addElement("\n");
 		return recode;
 	}
