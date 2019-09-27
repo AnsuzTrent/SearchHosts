@@ -4,42 +4,63 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage
 import org.apache.commons.logging.LogFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.awt.BorderLayout
 import java.awt.Desktop
+import java.awt.GridLayout
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.logging.Level
+import javax.swing.*
 import javax.swing.filechooser.FileSystemView
 
-private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
-
-private val proString: () -> String = {
-	"# Copyright (c) 1993-2009 Microsoft Corp.\n" + "#\n" +
-			"# This is getDocumentFromPage sample HOSTS file used by Microsoft TCP/IP for Windows.\n" + "#\n" +
-			"# This file contains the mappings of IP addresses to host names. Each\n" +
-			"# entry should be kept on an individual line. The IP address should\n" +
-			"# be placed in the first column followed by the corresponding host name.\n" +
-			"# The IP address and the host name should be separated by at least one\n" +
-			"# space.\n" + "#\n" +
-			"# Additionally, comments (such as these) may be inserted on individual\n" +
-			"# lines or following the machine name denoted by getDocumentFromPage '#' symbol.\n" + "#\n" +
-			"# For example:\n" + "#\n" +
-			"#      102.54.94.97     rhino.acme.com          # source server\n" +
-			"#       38.25.63.10     x.acme.com              # x client host\n" + "\n" +
-			"# localhost name resolution is handled within DNS itself.\n" +
-			"#\t127.0.0.1       localhost\n" +
-			"#\t::1             localhost\n" + "\n"
+fun main() {
+//	menu()
+	GUI()
 }
 
-private val openEtc: () -> Unit = { Desktop.getDesktop().open(File("C:\\Windows\\System32\\drivers\\etc\\")) }
+fun update() {
+	val urls = Objects.requireNonNull<Vector<String>>(readHosts())
+	if (!urls.isEmpty() && backup()) {
+		val fileWriter = File("$DesktopPath\\hosts")
+		fileWriter.writeText(proString())
+
+		//设定线程池
+		val pool = Executors.newFixedThreadPool(8)
+		for (i in urls.indices)
+			pool.execute(Thread {
+				println(urls.elementAt(i))
+
+				append(readPage(urls.elementAt(i)))
+			})
+		pool.shutdown()
+		while (true)
+			if (pool.isTerminated)
+				break
+
+		openEtc()
+		//移动，但目前不能获取管理员权限写入C 盘
+//		Files.move(bak1.toPath(), hosts.toPath());
+	}
+}
+
+private fun appendNew(str: String) {
+	val recode = readPage(str)
+	Files.copy(File("$path\\hosts").toPath(), File("$DesktopPath\\hosts").toPath())
+	if (!recode.isEmpty() && backup())
+		append(recode)
+	openEtc()
+}
 
 private fun backup(): Boolean {
-	val hosts = File("C:\\Windows\\System32\\drivers\\etc\\hosts")
-	//备份hosts
-	val backup = File("$DesktopPath\\hosts.bak")
 	try {
+		val hosts = File("$path\\hosts")
+		//备份hosts
+		val backup = File("$DesktopPath\\hosts.bak")
 		if (backup.exists())
 			Files.delete(backup.toPath())
 		Files.copy(hosts.toPath(), backup.toPath())
@@ -50,82 +71,40 @@ private fun backup(): Boolean {
 	return false
 }
 
-private fun readPage(url: String): Vector<String> {
-	val aimURL = "http://tool.chinaz.com/dns?type=1&host=$url&ip="
-	//设置代理
-//	System.setProperty("http.proxyHost", "127.0.0.1")
-//	System.setProperty("http.proxyPort", "8090")
+private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
 
-	val recode = Vector<String>()
+private const val path = "C:\\Windows\\System32\\drivers\\etc"
 
-	try {
-		val doc = getDocumentFromPage(aimURL)
+private val proString: () -> String = {
+	"""
+# Copyright (c) 1993-2009 Microsoft Corp.
+#
+# This is getDocumentFromPage sample HOSTS file used by Microsoft TCP/IP for Windows.
+#
+# This file contains the mappings of IP addresses to host names. Each
+# entry should be kept on an individual line. The IP address should
+# be placed in the first column followed by the corresponding host name.
+# The IP address and the host name should be separated by at least one
+# space.
+#
+# Additionally, comments (such as these) may be inserted on individual
+# lines or following the machine name denoted by getDocumentFromPage '#' symbol.
+#
+# For example:
+#
+#      102.54.94.97     rhino.acme.com          # source server
+#       38.25.63.10     x.acme.com              # x client host
 
-		println("The string is dealing...")
-		val host = doc.getElementById("host").attr("value")
+# localhost name resolution is handled within DNS itself.
+#	127.0.0.1       localhost
+#	::1             localhost
 
-		val ipTmp =
-			doc.getElementsByClass("w60-0 tl").text().split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-				.toTypedArray()
-		val ip = arrayOfNulls<String>(ipTmp.size)
-		run {
-			var i = 0
-			var j = 0
-			while (i < ipTmp.size) {
-				ipTmp[i] = ipTmp[i].replace("[^\\d{1,3}.]".toRegex(), "").replace("\\.\\.+".toRegex(), "")
-				if (ipTmp[i] == "") {
-					i++
-					continue
-				}
-				ip[j] = ipTmp[i]
-				j++
-				i++
-			}
-		}
-
-//		val str = doc.getElementsByClass("w14-0").text().split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-//			.toTypedArray()
-//		val ttl = arrayOfNulls<Int>(str.size)
-//		run {
-//			var i = 0
-//			var j = 0
-//			while (i < str.size) {
-//				if (str[i].contains("TTL")) {
-//					i++
-//					continue
-//				}
-//				ttl[j] = Integer.parseInt(str[i])
-//				j++
-//				i++
-//			}
-//		}
-
-
-		val tmp = Vector<String>()
-//		for (i in 0 until min(ttl.size, ip.size))
-//			if (ip[i] != null)
-//				if ((tmp.indexOf(ip[i]) == -1) and (ip[i] != "-"))
-//					tmp.addElement(ip[i] + " " + ttl[i])
-		for (s in ip) {
-			if (s != null)
-				if ((tmp.indexOf("$s $host") == -1) and (s != "-"))
-					tmp.addElement("$s $host")
-		}
-
-		tmp.sort()
-		for (i in tmp.indices)
-			recode.addElement("\n" + tmp.elementAt(i))
-	} catch (e: Exception) {
-		e.printStackTrace()
-	}
-
-	println("Finish")
-	recode.addElement("\n")
-	return recode
+	""".trimIndent()
 }
 
+private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(path)) }
+
 private fun getDocumentFromPage(url: String): Document {
-	println("Page loading...")
 	//不打印日志
 	LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
 	java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
@@ -149,41 +128,77 @@ private fun getDocumentFromPage(url: String): Document {
 	//等待后台运行
 	webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
 
-	println("Loaded.")
 	return Jsoup.parse(page.asXml(), url)
 }
 
-private fun append(recode: Vector<String>): Boolean {
-	if (!recode.isEmpty() && backup()) {
-		val fileWriter = File("$DesktopPath\\hosts")
-		for (i in recode.indices)
-			fileWriter.appendText(recode.elementAt(i))
-		return true
-	}
-	return false
-}
+private fun readPage(url: String): Vector<String> {
+	val aimURL = "http://tool.chinaz.com/dns?type=1&host=$url&ip="
+	//设置代理
+//	System.setProperty("http.proxyHost", "127.0.0.1")
+//	System.setProperty("http.proxyPort", "8090")
 
-private fun updateHosts(urls: Vector<String>): Boolean {
-	if (!urls.isEmpty() && backup()) {
-		try {
-			val fileWriter = FileWriter("$DesktopPath\\hosts")
-			fileWriter.write(proString())
-			fileWriter.flush()
-			fileWriter.close()
+	val recode = Vector<String>()
 
-			for (i in urls.indices)
-				append(readPage(urls.elementAt(i)))
+	try {
+		val doc = getDocumentFromPage(aimURL)
 
-			//移动，但目前不能获取管理员权限写入C 盘
-			//				Files.move(bak1.toPath(), hosts.toPath());
+		val host = doc.getElementById("host").attr("value")
 
-			return true
-		} catch (e: IOException) {
-			e.printStackTrace()
+		val ipTmp =
+			doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]".toRegex()).dropLastWhile { it.isEmpty() }
+				.toTypedArray()
+		val ip = arrayOfNulls<String>(ipTmp.size)
+		run {
+			var i = 0
+			var j = 0
+			while (i < ipTmp.size) {
+				ipTmp[i] = ipTmp[i].replace("([ \\-]|\\.\\.+)".toRegex(), "")
+				if (ipTmp[i] == "") {
+					i++
+					continue
+				}
+				ip[j++] = ipTmp[i++]
+			}
 		}
 
+//		val str = doc.getElementsByClass("w14-0").text().split(" ".toRegex()).dropLastWhile { it.isEmpty() }
+//			.toTypedArray()
+//		val ttl = arrayOfNulls<Int>(str.size)
+//		run {
+//			var i = 0
+//			var j = 0
+//			while (i < str.size) {
+//				if (str[i].contains("TTL")) {
+//					i++
+//					continue
+//				}
+//				ttl[j] = Integer.parseInt(str[i])
+//				j++
+//				i++
+//			}
+//		}
+
+
+//		val tmp = Vector<String>()
+//		for (i in 0 until min(ttl.size, ip.size))
+//			if (ip[i] != null)
+//				if ((tmp.indexOf(ip[i]) == -1) and (ip[i] != "-"))
+//					tmp.addElement(ip[i] + " " + ttl[i])
+
+		for (s in ip)
+			if (s != null)
+				if ((recode.indexOf("\n$s $host") == -1) and (s != "-"))
+					recode.addElement("\n$s $host")
+
+		recode.sort()
+//		for (i in tmp.indices)
+//			recode.addElement("\n" + tmp.elementAt(i))
+	} catch (e: Exception) {
+		e.printStackTrace()
 	}
-	return false
+
+	recode.addElement("\n")
+	return recode
 }
 
 private fun readHosts(): Vector<String>? {
@@ -195,7 +210,7 @@ private fun readHosts(): Vector<String>? {
 
 	val recode = Vector<String>()
 
-	val dirPath = "C:\\Windows\\System32\\drivers\\etc\\hosts"
+	val dirPath = "$path\\hosts"
 	val fileReader = File(dirPath).bufferedReader()
 	var s = fileReader.readLine()
 	//逐行读取文件记录
@@ -217,39 +232,118 @@ private fun readHosts(): Vector<String>? {
 	return if (recode.isEmpty()) null else recode
 }
 
+private fun append(recode: Vector<String>) {
+	val fileWriter = File("$DesktopPath\\hosts")
+	for (i in recode.indices)
+		fileWriter.appendText(recode.elementAt(i))
+}
+
 fun menu() {
-	var s: String? = ""
+	var flag = true
 	//hosts 备份位于桌面
-	while (s != "quit") {
-		var flag: Boolean? = false
-		println("1 更新hosts (暂停服务)\n" + "2 新增URL\n" + "3 备份hosts\n" + "输入quit 退出")
-		s = readLine()
-		when (s) {
+	while (flag) {
+		flag = false
+		println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
+		when (val s = readLine()) {
 			"1" -> {
-				flag = updateHosts(Objects.requireNonNull<Vector<String>>(readHosts()))
-				openEtc()
+				update()
 			}
 			"2" -> {
 				println("Input the URL:")
-				flag = readLine()?.let { readPage(it) }?.let { append(it) }
-				openEtc()
+				readLine()?.let { appendNew(it) }
 			}
 			"3" -> flag = backup()
+			else -> {
+				if (!s.equals("quit")) {
+					println("请重试")
+					flag = true
+				}
+			}
 		}
-		if (flag!!)
-			break
-		else
-			println("请重试")
 	}
 }
 
-fun toGUI() {
+class GUI internal constructor() : JFrame(), ActionListener {
+	private val updateHosts: JButton
+	private val search: JButton
+	private val backupHosts: JButton
+	private val hosts: JTextField
 
-}
+	init {
+		//左侧栏
+		val textArea = JTextArea("广告位招租")
+		//设置只读
+		textArea.isEditable = false
+		val update = JPanel()
+		update.add(textArea)
+		add(update, BorderLayout.WEST)
 
-fun main() {
-	menu()
-	toGUI()
-//	readHosts()
+		//中栏
+		val textA = JTextArea("到时候输出记录")
+		//设置只读
+		textA.isEditable = false
+		val recode = JPanel()
+		recode.layout = GridLayout(1, 1)
+		recode.add(textA)
+		add(recode, BorderLayout.CENTER)
 
+		//顶栏
+		hosts = JTextField()
+		search = JButton("搜索")
+		search.addActionListener(this)
+		val append = JPanel()
+		append.layout = GridLayout(1, 2)
+		append.add(hosts)
+		append.add(search)
+		add(append, BorderLayout.NORTH)
+
+		//底栏
+		backupHosts = JButton("备份")
+		backupHosts.addActionListener(this)
+		updateHosts = JButton("更新")
+		updateHosts.addActionListener(this)
+		val backup = JPanel()
+		backup.layout = GridLayout(1, 2)
+		backup.add(backupHosts)
+		backup.add(updateHosts)
+		add(backup, BorderLayout.SOUTH)
+
+		title = "test"
+		//大小
+		setSize(500, 500)
+		//是否可改变大小
+//		isResizable = false
+		//出现位置居中
+		setLocationRelativeTo(null)
+//		setLocation(1200, 200)
+		//关闭窗口按钮
+		defaultCloseOperation = EXIT_ON_CLOSE
+		//是否可见
+		isVisible = true
+	}
+
+	private fun setButtonStatus(f: Boolean, vararg a: JButton) {
+		for (button in a)
+			button.isEnabled = f
+	}
+
+	override fun actionPerformed(e: ActionEvent) {
+		when {
+			e.source === search -> {
+				setButtonStatus(false, backupHosts, updateHosts)
+				appendNew(hosts.text)
+				setButtonStatus(true, backupHosts, updateHosts)
+			}
+			e.source === backupHosts -> {
+				setButtonStatus(false, search, updateHosts)
+				backup()
+				setButtonStatus(true, search, updateHosts)
+			}
+			else -> {
+				setButtonStatus(false, search, backupHosts)
+				update()
+				setButtonStatus(true, search, backupHosts)
+			}
+		}
+	}
 }
