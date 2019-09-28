@@ -23,60 +23,246 @@ fun main() {
 	GUI()
 }
 
-fun update() {
-	val urls = Objects.requireNonNull<Vector<String>>(readHosts())
-	if (!urls.isEmpty() && backup()) {
-		val fileWriter = File("$DesktopPath\\hosts")
-		fileWriter.writeText(proString())
+class GUI internal constructor() : JFrame(), ActionListener {
+	private val hosts = JTextField()
+	private val search = JButton("搜索")
+	private val textA = JTextArea("请选择功能")
+	private val backupHosts = JButton("备份")
+	private val updateHosts = JButton("更新")
 
-		//设定线程池
-		val pool = Executors.newFixedThreadPool(8)
-		for (i in urls.indices)
-			pool.execute(Thread {
-				println(urls.elementAt(i))
+	private val desktopPath = FileSystemView.getFileSystemView().homeDirectory.path
+	private val etcPath = "C:\\Windows\\System32\\drivers\\etc"
+	private val local = Vector<String>()
 
-				append(readPage(urls.elementAt(i)))
-			})
-		pool.shutdown()
-		while (true)
-			if (pool.isTerminated)
-				break
+	init {
+		//顶栏
+		val append = JPanel()
+		append.layout = GridLayout(1, 2)
+		append.add(hosts)
+		search.addActionListener(this)
+		append.add(search)
+		add(append, BorderLayout.NORTH)
 
-		openEtc()
-		//移动，但目前不能获取管理员权限写入C 盘
-//		Files.move(bak1.toPath(), hosts.toPath());
+		//中栏
+		val recode = JPanel()
+		recode.layout = GridLayout(1, 1)
+		textA.isEditable = false//设置只读
+		textA.lineWrap = true//设置自动换行
+		recode.add(JScrollPane(textA))//创建滚动窗格
+		add(recode, BorderLayout.CENTER)
+
+		//底栏
+		val backup = JPanel()
+		backup.layout = GridLayout(1, 2)
+		backupHosts.addActionListener(this)
+		backup.add(backupHosts)
+		updateHosts.addActionListener(this)
+		backup.add(updateHosts)
+		add(backup, BorderLayout.SOUTH)
+
+		title = "test"
+		setSize(500, 500)        //大小
+		isResizable = false    //是否可改变大小
+		setLocationRelativeTo(null)        //出现位置居中
+//		setLocation(1200, 200)
+		defaultCloseOperation = EXIT_ON_CLOSE    //关闭窗口按钮
+		isVisible = true    //是否可见
 	}
-}
 
-private fun appendNew(str: String) {
-	val recode = readPage(str)
-	Files.copy(File("$path\\hosts").toPath(), File("$DesktopPath\\hosts").toPath())
-	if (!recode.isEmpty() && backup())
-		append(recode)
-	openEtc()
-}
-
-private fun backup(): Boolean {
-	try {
-		val hosts = File("$path\\hosts")
-		//备份hosts
-		val backup = File("$DesktopPath\\hosts.bak")
-		if (backup.exists())
-			Files.delete(backup.toPath())
-		Files.copy(hosts.toPath(), backup.toPath())
-		return true
-	} catch (e: IOException) {
-		e.printStackTrace()
+	private fun setButtonStatus(f: Boolean, vararg buttons: JButton) {
+		for (button in buttons)
+			button.isEnabled = f
 	}
-	return false
-}
 
-private val DesktopPath = FileSystemView.getFileSystemView().homeDirectory.path
+	override fun actionPerformed(e: ActionEvent) {
+		textA.text = ""
+		when {
+			e.source === search -> {
+				setButtonStatus(false, backupHosts, updateHosts)
+				appendNew(hosts.text)
+				setButtonStatus(true, backupHosts, updateHosts)
+			}
+			e.source === backupHosts -> {
+				setButtonStatus(false, search, updateHosts)
+				backup()
+				setButtonStatus(true, search, updateHosts)
+			}
+			else -> {
+				setButtonStatus(false, search, backupHosts)
+				update()
+				setButtonStatus(true, search, backupHosts)
+			}
+		}
+	}
 
-private const val path = "C:\\Windows\\System32\\drivers\\etc"
+	private fun backup(): Boolean {
+		try {
+			val hosts = File("$etcPath\\hosts")
+			//备份hosts
+			val backup = File("$desktopPath\\hosts.bak")
+			if (backup.exists())
+				Files.delete(backup.toPath())
+			Files.copy(hosts.toPath(), backup.toPath())
+			textA.append("已备份hosts 文件至  ：  " + backup.toPath())
+			return true
+		} catch (e: IOException) {
+			textA.append("\n\n${e.message}\n\n")
+		}
+		return false
+	}
 
-private val proString: () -> String = {
-	"""
+	private fun appendNew(str: String) {
+		if (str == "") {
+			textA.append("请在搜索栏中写入网址")
+			return
+		}
+		val recode = readPage(str)
+		Files.copy(File("$etcPath\\hosts").toPath(), File("$desktopPath\\hosts").toPath())
+		if (!recode.isEmpty() && backup()) {
+			append(recode)
+			textA.append("\n 完成")
+			openEtc()
+		}
+	}
+
+	private fun update() {
+		val urls = Objects.requireNonNull<Vector<String>>(readHosts())
+		if (!urls.isEmpty() && backup()) {
+			val fileWriter = File("$desktopPath\\hosts")
+			fileWriter.writeText(proString())
+			for (s in local)
+				fileWriter.writeText(s)
+
+			//设定线程池
+			val pool = Executors.newFixedThreadPool(8)
+			for (i in urls)
+				pool.execute(Thread { append(readPage(i)) })
+			pool.shutdown()
+			while (true)
+				if (pool.isTerminated)
+					break
+			textA.append("\n完成")
+			openEtc()
+			//移动，但目前不能获取管理员权限写入C 盘
+//			Files.move(bak1.toPath(), hosts.toPath());
+		}
+	}
+
+	private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(etcPath)) }
+
+	private fun append(recode: Vector<String>) {
+		val fileWriter = File("$desktopPath\\hosts")
+		for (i in recode) {
+			textA.append(i)
+			fileWriter.appendText(i)
+		}
+	}
+
+	private fun getDocumentFromPage(url: String): Document {
+		//不打印日志
+		LogFactory.getFactory()
+			.setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
+		java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
+
+		//模拟Chrome
+		val webClient = WebClient(BrowserVersion.CHROME)
+		val webClientOptions = webClient.options
+
+		//禁用CSS
+		webClientOptions.isCssEnabled = false
+		//启用JS 解释器
+		webClientOptions.isJavaScriptEnabled = true
+		//JS 错误时不抛出异常
+		webClientOptions.isThrowExceptionOnScriptError = false
+		webClientOptions.isThrowExceptionOnFailingStatusCode = false
+		//连接超时时间
+		webClientOptions.timeout = 2 * 1000
+
+		val page = webClient.getPage<HtmlPage>(url)
+		//等待后台运行
+		webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
+
+		return Jsoup.parse(page.asXml(), url)
+	}
+
+	private fun readPage(url: String): Vector<String> {
+		val aimURL = "http://tool.chinaz.com/dns?type=1&host=$url&ip="
+		//设置代理
+//		System.setProperty("http.proxyHost", "127.0.0.1")
+//		System.setProperty("http.proxyPort", "8090")
+
+		val recode = Vector<String>()
+
+		try {
+			val doc = getDocumentFromPage(aimURL)
+
+			val host = doc.getElementById("host").attr("value")
+
+			val ipTmp =
+				doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]".toRegex()).dropLastWhile { it.isEmpty() }
+					.toTypedArray()
+			val ip = arrayOfNulls<String>(ipTmp.size)
+			var i = 0
+			var j = 0
+			while (i < ipTmp.size) {
+				ipTmp[i] = ipTmp[i].replace("([ \\-]|\\.\\.+)".toRegex(), "")
+				if (ipTmp[i] == "") {
+					i++
+					continue
+				}
+				ip[j++] = ipTmp[i++]
+			}
+
+			for (s in ip)
+				if (s != null)
+					if ((recode.indexOf("\n$s $host") == -1) and (s != "-"))
+						recode.addElement("\n$s $host")
+
+			recode.sort()
+		} catch (e: Exception) {
+			textA.append("\n\n${e.message}\n\n")
+		}
+
+		recode.addElement("\n")
+		return recode
+	}
+
+	private fun readHosts(): Vector<String>? {
+		if (!System.getProperty("os.name").contains("indows")) {
+			textA.append("目前仅支持Windows 2000/XP 及以上版本")
+			return null
+		}
+		//听说其在Win98,win me 中位于/Windows 下？
+
+		val recode = Vector<String>()
+
+		val fileReader = File("$etcPath\\hosts").bufferedReader()
+		var s = fileReader.readLine()
+		//逐行读取文件记录
+		while (s != null) {
+			//过滤# 开头的注释以及空行
+			if (s.startsWith("#") || s == "") {
+				if (s.startsWith("127.0.0.1"))
+					local.addElement(s)
+				s = fileReader.readLine()
+				continue
+			}
+			local.addElement("\n")
+			//以空格作为分割点
+			val fromFile = s.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+			//过滤重复
+			if (recode.indexOf(fromFile[1]) == -1)
+				recode.addElement(fromFile[1])
+			s = fileReader.readLine()
+		}
+		fileReader.close()
+		recode.sort()
+		return if (recode.isEmpty()) null else recode
+	}
+
+	private val proString: () -> String = {
+		"""
 # Copyright (c) 1993-2009 Microsoft Corp.
 #
 # This is getDocumentFromPage sample HOSTS file used by Microsoft TCP/IP for Windows.
@@ -100,250 +286,31 @@ private val proString: () -> String = {
 #	::1             localhost
 
 	""".trimIndent()
-}
+	}
 
-private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(path)) }
-
-private fun getDocumentFromPage(url: String): Document {
-	//不打印日志
-	LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
-	java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
-	java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
-
-	//模拟Chrome
-	val webClient = WebClient(BrowserVersion.CHROME)
-	val webClientOptions = webClient.options
-
-	//禁用CSS
-	webClientOptions.isCssEnabled = false
-	//启用JS 解释器
-	webClientOptions.isJavaScriptEnabled = true
-	//JS 错误时不抛出异常
-	webClientOptions.isThrowExceptionOnScriptError = false
-	webClientOptions.isThrowExceptionOnFailingStatusCode = false
-	//连接超时时间
-	webClientOptions.timeout = 2 * 1000
-
-	val page = webClient.getPage<HtmlPage>(url)
-	//等待后台运行
-	webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
-
-	return Jsoup.parse(page.asXml(), url)
-}
-
-private fun readPage(url: String): Vector<String> {
-	val aimURL = "http://tool.chinaz.com/dns?type=1&host=$url&ip="
-	//设置代理
-//	System.setProperty("http.proxyHost", "127.0.0.1")
-//	System.setProperty("http.proxyPort", "8090")
-
-	val recode = Vector<String>()
-
-	try {
-		val doc = getDocumentFromPage(aimURL)
-
-		val host = doc.getElementById("host").attr("value")
-
-		val ipTmp =
-			doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]".toRegex()).dropLastWhile { it.isEmpty() }
-				.toTypedArray()
-		val ip = arrayOfNulls<String>(ipTmp.size)
-		run {
-			var i = 0
-			var j = 0
-			while (i < ipTmp.size) {
-				ipTmp[i] = ipTmp[i].replace("([ \\-]|\\.\\.+)".toRegex(), "")
-				if (ipTmp[i] == "") {
-					i++
-					continue
+	fun menu() {
+		var flag = true
+		//hosts 备份位于桌面
+		while (flag) {
+			flag = false
+			println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
+			when (val s = readLine()) {
+				"1" -> {
+					update()
 				}
-				ip[j++] = ipTmp[i++]
-			}
-		}
-
-//		val str = doc.getElementsByClass("w14-0").text().split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-//			.toTypedArray()
-//		val ttl = arrayOfNulls<Int>(str.size)
-//		run {
-//			var i = 0
-//			var j = 0
-//			while (i < str.size) {
-//				if (str[i].contains("TTL")) {
-//					i++
-//					continue
-//				}
-//				ttl[j] = Integer.parseInt(str[i])
-//				j++
-//				i++
-//			}
-//		}
-
-
-//		val tmp = Vector<String>()
-//		for (i in 0 until min(ttl.size, ip.size))
-//			if (ip[i] != null)
-//				if ((tmp.indexOf(ip[i]) == -1) and (ip[i] != "-"))
-//					tmp.addElement(ip[i] + " " + ttl[i])
-
-		for (s in ip)
-			if (s != null)
-				if ((recode.indexOf("\n$s $host") == -1) and (s != "-"))
-					recode.addElement("\n$s $host")
-
-		recode.sort()
-//		for (i in tmp.indices)
-//			recode.addElement("\n" + tmp.elementAt(i))
-	} catch (e: Exception) {
-		e.printStackTrace()
-	}
-
-	recode.addElement("\n")
-	return recode
-}
-
-private fun readHosts(): Vector<String>? {
-	if (!System.getProperty("os.name").contains("indows")) {
-		println("目前仅支持Windows 2000/XP 及以上版本")
-		return null
-	}
-	//听说其在Win98,win me 中位于/Windows 下？
-
-	val recode = Vector<String>()
-
-	val dirPath = "$path\\hosts"
-	val fileReader = File(dirPath).bufferedReader()
-	var s = fileReader.readLine()
-	//逐行读取文件记录
-	while (s != null) {
-		//过滤# 开头的注释以及空行
-		if (s.startsWith("#") || s == "") {
-			s = fileReader.readLine()
-			continue
-		}
-		//以空格作为分割点
-		val fromFile = s.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-		//过滤重复
-		if (recode.indexOf(fromFile[1]) == -1)
-			recode.addElement(fromFile[1])
-		s = fileReader.readLine()
-	}
-	fileReader.close()
-	recode.sort()
-	return if (recode.isEmpty()) null else recode
-}
-
-private fun append(recode: Vector<String>) {
-	val fileWriter = File("$DesktopPath\\hosts")
-	for (i in recode.indices)
-		fileWriter.appendText(recode.elementAt(i))
-}
-
-fun menu() {
-	var flag = true
-	//hosts 备份位于桌面
-	while (flag) {
-		flag = false
-		println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
-		when (val s = readLine()) {
-			"1" -> {
-				update()
-			}
-			"2" -> {
-				println("Input the URL:")
-				readLine()?.let { appendNew(it) }
-			}
-			"3" -> flag = backup()
-			else -> {
-				if (!s.equals("quit")) {
-					println("请重试")
-					flag = true
+				"2" -> {
+					println("Input the URL:")
+					readLine()?.let { appendNew(it) }
+				}
+				"3" -> flag = backup()
+				else -> {
+					if (!s.equals("quit")) {
+						println("请重试")
+						flag = true
+					}
 				}
 			}
 		}
 	}
-}
 
-class GUI internal constructor() : JFrame(), ActionListener {
-	private val updateHosts: JButton
-	private val search: JButton
-	private val backupHosts: JButton
-	private val hosts: JTextField
-
-	init {
-		//左侧栏
-		val textArea = JTextArea("广告位招租")
-		//设置只读
-		textArea.isEditable = false
-		val update = JPanel()
-		update.add(textArea)
-		add(update, BorderLayout.WEST)
-
-		//中栏
-		val textA = JTextArea("到时候输出记录")
-		//设置只读
-		textA.isEditable = false
-		val recode = JPanel()
-		recode.layout = GridLayout(1, 1)
-		recode.add(textA)
-		add(recode, BorderLayout.CENTER)
-
-		//顶栏
-		hosts = JTextField()
-		search = JButton("搜索")
-		search.addActionListener(this)
-		val append = JPanel()
-		append.layout = GridLayout(1, 2)
-		append.add(hosts)
-		append.add(search)
-		add(append, BorderLayout.NORTH)
-
-		//底栏
-		backupHosts = JButton("备份")
-		backupHosts.addActionListener(this)
-		updateHosts = JButton("更新")
-		updateHosts.addActionListener(this)
-		val backup = JPanel()
-		backup.layout = GridLayout(1, 2)
-		backup.add(backupHosts)
-		backup.add(updateHosts)
-		add(backup, BorderLayout.SOUTH)
-
-		title = "test"
-		//大小
-		setSize(500, 500)
-		//是否可改变大小
-//		isResizable = false
-		//出现位置居中
-		setLocationRelativeTo(null)
-//		setLocation(1200, 200)
-		//关闭窗口按钮
-		defaultCloseOperation = EXIT_ON_CLOSE
-		//是否可见
-		isVisible = true
-	}
-
-	private fun setButtonStatus(f: Boolean, vararg a: JButton) {
-		for (button in a)
-			button.isEnabled = f
-	}
-
-	override fun actionPerformed(e: ActionEvent) {
-		when {
-			e.source === search -> {
-				setButtonStatus(false, backupHosts, updateHosts)
-				appendNew(hosts.text)
-				setButtonStatus(true, backupHosts, updateHosts)
-			}
-			e.source === backupHosts -> {
-				setButtonStatus(false, search, updateHosts)
-				backup()
-				setButtonStatus(true, search, updateHosts)
-			}
-			else -> {
-				setButtonStatus(false, search, backupHosts)
-				update()
-				setButtonStatus(true, search, backupHosts)
-			}
-		}
-	}
 }
