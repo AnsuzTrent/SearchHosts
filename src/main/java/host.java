@@ -72,11 +72,35 @@ class SearchHosts extends JFrame implements ActionListener {
 //		setLocation(1200, 200);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);        //关闭窗口按钮
 		setVisible(true);    //是否可见
+
+		if (!System.getProperty("os.name").contains("indows")) {
+			textA.append("\n目前仅支持Windows 2000/XP 及以上版本");
+			setButtonStatus(false, search, updateHosts, backupHosts);
+		}
+		//听说其在Win98,win me 中位于/Windows 下？
 	}
 
 	private static void setButtonStatus(boolean f, JButton... buttons) {
 		for (JButton button : buttons)
 			button.setEnabled(f);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		textA.setText("");
+		if (e.getSource() == search) {
+			setButtonStatus(false, backupHosts, updateHosts);
+			AppendNew(hosts.getText());
+			setButtonStatus(true, backupHosts, updateHosts);
+		} else if (e.getSource() == backupHosts) {
+			setButtonStatus(false, search, updateHosts);
+			Backup();
+			setButtonStatus(true, search, updateHosts);
+		} else {
+			setButtonStatus(false, search, backupHosts);
+			Update();
+			setButtonStatus(true, search, backupHosts);
+		}
 	}
 
 	private static Boolean Backup() {
@@ -232,11 +256,6 @@ class SearchHosts extends JFrame implements ActionListener {
 	private static Vector<String> ReadHosts() {
 		Vector<String> recode = new Vector<>();
 		try {
-			if (!System.getProperty("os.name").contains("indows")) {
-				textA.append("\n目前仅支持Windows 2000/XP 及以上版本");
-				return null;
-			}
-			//听说其在Win98,win me 中位于/Windows 下？
 			FileReader fileReader = new FileReader(EtcPath + "\\hosts");
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			String s;
@@ -287,24 +306,6 @@ class SearchHosts extends JFrame implements ActionListener {
 				"#\t127.0.0.1       localhost\n" +
 				"#\t::1             localhost\n" +
 				"\n";
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		textA.setText("");
-		if (e.getSource() == search) {
-			setButtonStatus(false, backupHosts, updateHosts);
-			AppendNew(hosts.getText());
-			setButtonStatus(true, backupHosts, updateHosts);
-		} else if (e.getSource() == backupHosts) {
-			setButtonStatus(false, search, updateHosts);
-			Backup();
-			setButtonStatus(true, search, updateHosts);
-		} else {
-			setButtonStatus(false, search, backupHosts);
-			Update();
-			setButtonStatus(true, search, backupHosts);
-		}
 	}
 
 	private static void Menu() {

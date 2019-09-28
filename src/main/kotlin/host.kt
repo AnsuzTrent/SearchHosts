@@ -67,6 +67,14 @@ class GUI internal constructor() : JFrame(), ActionListener {
 //		setLocation(1200, 200)
 		defaultCloseOperation = EXIT_ON_CLOSE    //关闭窗口按钮
 		isVisible = true    //是否可见
+
+
+		if (!System.getProperty("os.name").contains("indows")) {
+			textA.append("目前仅支持Windows 2000/XP 及以上版本")
+			setButtonStatus(false, search, updateHosts, backupHosts)
+		}
+		//听说其在Win98,win me 中位于/Windows 下？
+
 	}
 
 	private fun setButtonStatus(f: Boolean, vararg buttons: JButton) {
@@ -229,12 +237,6 @@ class GUI internal constructor() : JFrame(), ActionListener {
 	}
 
 	private fun readHosts(): Vector<String>? {
-		if (!System.getProperty("os.name").contains("indows")) {
-			textA.append("目前仅支持Windows 2000/XP 及以上版本")
-			return null
-		}
-		//听说其在Win98,win me 中位于/Windows 下？
-
 		val recode = Vector<String>()
 
 		val fileReader = File("$etcPath\\hosts").bufferedReader()
