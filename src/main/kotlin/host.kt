@@ -282,9 +282,12 @@ class GUI internal constructor() : JFrame(), ActionListener {
 		val textA = JTextArea("到时候输出记录")
 		//设置只读
 		textA.isEditable = false
+		//设置自动换行
+		textA.lineWrap = true
 		val recode = JPanel()
 		recode.layout = GridLayout(1, 1)
-		recode.add(textA)
+		//创建滚动窗格
+		recode.add(JScrollPane(textA))
 		add(recode, BorderLayout.CENTER)
 
 		//顶栏

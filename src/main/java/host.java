@@ -273,6 +273,10 @@ public class host {
 		}
 	}
 
+	private static void textAppend(JTextArea textArea, String str) {
+
+	}
+
 	static class GUI extends JFrame implements ActionListener {
 		private JButton updateHosts, search, backupHosts;
 		private JTextField hosts;
@@ -290,9 +294,12 @@ public class host {
 			JTextArea textA = new JTextArea("到时候输出记录");
 			//设置只读
 			textA.setEditable(false);
+			//设置自动换行
+			textA.setLineWrap(true);
 			JPanel recode = new JPanel();
 			recode.setLayout(new GridLayout(1, 1));
-			recode.add(textA);
+			//创建滚动窗格
+			recode.add(new JScrollPane(textA));
 			add(recode, BorderLayout.CENTER);
 
 			//顶栏
