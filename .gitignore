@@ -6,7 +6,7 @@
 /build/
 /Hosts
 
-# Ignore Gradle GUI config
+# Ignore Gradle SearchHosts config
 gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
