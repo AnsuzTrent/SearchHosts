@@ -35,8 +35,9 @@ class SearchHosts extends JFrame implements ActionListener {
 	private static JButton backupHosts = new JButton("备份");
 	private static JButton updateHosts = new JButton("更新");
 
-	private static String DesktopPath = FileSystemView.getFileSystemView().getHomeDirectory().getPath();
 	private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
+	private static File hostsPath = new File(EtcPath + "\\hosts");
+	private static File editFile = new File(FileSystemView.getFileSystemView().getHomeDirectory().getPath() + "\\hosts");
 	private static Vector<String> local = new Vector<>();
 
 	SearchHosts() {
@@ -74,7 +75,7 @@ class SearchHosts extends JFrame implements ActionListener {
 		setVisible(true);    //是否可见
 
 		if (!System.getProperty("os.name").contains("indows")) {
-			textA.append("\n目前仅支持Windows 2000/XP 及以上版本");
+			textA.setText("\n目前仅支持Windows 2000/XP 及以上版本");
 			setButtonStatus(false, search, updateHosts, backupHosts);
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
@@ -104,17 +105,15 @@ class SearchHosts extends JFrame implements ActionListener {
 	}
 
 	private static Boolean Backup() {
-		File hosts = new File(EtcPath + "\\hosts");
-		//备份hosts
-		File backup = new File(DesktopPath + "\\hosts.bak");
 		try {
+			File backup = new File(editFile + ".bak");
 			if (backup.exists())
 				Files.delete(backup.toPath());
-			Files.copy(hosts.toPath(), backup.toPath());
+			Files.copy(hostsPath.toPath(), backup.toPath());
 			textA.append("已备份hosts 文件至  ：  " + backup.toPath());
 			return true;
 		} catch (IOException e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 		}
 
 		return false;
@@ -126,9 +125,11 @@ class SearchHosts extends JFrame implements ActionListener {
 			return;
 		}
 		try {
-			Files.copy(new File(EtcPath + "\\hosts").toPath(), new File(DesktopPath + "\\hosts").toPath());
+			if (editFile.exists())
+				Files.delete(editFile.toPath());
+			Files.copy(hostsPath.toPath(), editFile.toPath());
 		} catch (IOException e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 		}
 		Vector<String> recode = ReadPage(str);
 		if (!recode.isEmpty() && Backup()) {
@@ -142,10 +143,11 @@ class SearchHosts extends JFrame implements ActionListener {
 		Vector<String> urls = Objects.requireNonNull(ReadHosts());
 		if (!urls.isEmpty() && Backup()) {
 			try {
-				FileWriter fileWriter = new FileWriter(DesktopPath + "\\hosts");
+				FileWriter fileWriter = new FileWriter(editFile.getName());
 				fileWriter.write(proString());
-				for (String s : local)
-					fileWriter.write(s);
+				if (local.size() > 0)
+					for (String s : local)
+						fileWriter.write(s);
 				fileWriter.flush();
 				fileWriter.close();
 
@@ -162,7 +164,7 @@ class SearchHosts extends JFrame implements ActionListener {
 				//移动，但目前不能获取管理员权限写入C 盘
 //				Files.move(bak1.toPath(), hosts.toPath());
 			} catch (IOException e) {
-				textA.append("\n\n" + e.getMessage() + "\n\n");
+				textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 			}
 		}
 	}
@@ -171,20 +173,20 @@ class SearchHosts extends JFrame implements ActionListener {
 		try {
 			Desktop.getDesktop().open(new File(EtcPath));
 		} catch (IOException e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 		}
 	}
 
 	private static void Append(Vector<String> recode) {
 		try {
-			FileWriter fileWriter1 = new FileWriter(DesktopPath + "\\hosts", true);
+			FileWriter fileWriter = new FileWriter(editFile.getName(), true);
 			for (String str : recode) {
 				textA.append(str);
-				fileWriter1.write(str);
+				fileWriter.write(str);
 			}
-			fileWriter1.close();
+			fileWriter.close();
 		} catch (IOException e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n" + e.getMessage() + "\n\n");
 		}
 	}
 
@@ -220,9 +222,12 @@ class SearchHosts extends JFrame implements ActionListener {
 
 			Collections.sort(recode);
 		} catch (Exception e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 		}
-		recode.addElement("\n");
+		if (!recode.isEmpty())
+			recode.addElement("\n");
+		else
+			textA.append("输入的网址没有找到对应ip\n");
 		return recode;
 	}
 
@@ -256,7 +261,7 @@ class SearchHosts extends JFrame implements ActionListener {
 	private static Vector<String> ReadHosts() {
 		Vector<String> recode = new Vector<>();
 		try {
-			FileReader fileReader = new FileReader(EtcPath + "\\hosts");
+			FileReader fileReader = new FileReader(hostsPath);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			String s;
 			//逐行读取文件记录
@@ -267,17 +272,18 @@ class SearchHosts extends JFrame implements ActionListener {
 						local.addElement(s);
 					continue;
 				}
-				local.addElement("\n");
 				//以空格作为分割点
 				String[] fromFile = s.split(" ");
 				//过滤重复
 				if (recode.indexOf(fromFile[1]) == -1)
 					recode.addElement(fromFile[1]);
 			}
+			if (local.size() > 0)
+				local.addElement("\n");
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			textA.append("\n\n" + e.getMessage() + "\n\n");
+			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;

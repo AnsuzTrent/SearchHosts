@@ -30,8 +30,9 @@ class GUI internal constructor() : JFrame(), ActionListener {
 	private val backupHosts = JButton("备份")
 	private val updateHosts = JButton("更新")
 
-	private val desktopPath = FileSystemView.getFileSystemView().homeDirectory.path
 	private val etcPath = "C:\\Windows\\System32\\drivers\\etc"
+	private val hostsPath = File("$etcPath\\hosts")
+	private val editFile = File("${FileSystemView.getFileSystemView().homeDirectory.path}\\hosts")
 	private val local = Vector<String>()
 
 	init {
@@ -70,7 +71,7 @@ class GUI internal constructor() : JFrame(), ActionListener {
 
 
 		if (!System.getProperty("os.name").contains("indows")) {
-			textA.append("目前仅支持Windows 2000/XP 及以上版本")
+			textA.text = "目前仅支持Windows 2000/XP 及以上版本"
 			setButtonStatus(false, search, updateHosts, backupHosts)
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
@@ -105,12 +106,11 @@ class GUI internal constructor() : JFrame(), ActionListener {
 
 	private fun backup(): Boolean {
 		try {
-			val hosts = File("$etcPath\\hosts")
 			//备份hosts
-			val backup = File("$desktopPath\\hosts.bak")
+			val backup = File("$editFile.bak")
 			if (backup.exists())
 				Files.delete(backup.toPath())
-			Files.copy(hosts.toPath(), backup.toPath())
+			Files.copy(hostsPath.toPath(), backup.toPath())
 			textA.append("已备份hosts 文件至  ：  " + backup.toPath())
 			return true
 		} catch (e: IOException) {
@@ -124,8 +124,10 @@ class GUI internal constructor() : JFrame(), ActionListener {
 			textA.append("请在搜索栏中写入网址")
 			return
 		}
+		if (editFile.exists())
+			Files.delete(editFile.toPath())
+		Files.copy(hostsPath.toPath(), editFile.toPath())
 		val recode = readPage(str)
-		Files.copy(File("$etcPath\\hosts").toPath(), File("$desktopPath\\hosts").toPath())
 		if (!recode.isEmpty() && backup()) {
 			append(recode)
 			textA.append("\n 完成")
@@ -136,10 +138,11 @@ class GUI internal constructor() : JFrame(), ActionListener {
 	private fun update() {
 		val urls = Objects.requireNonNull<Vector<String>>(readHosts())
 		if (!urls.isEmpty() && backup()) {
-			val fileWriter = File("$desktopPath\\hosts")
+			val fileWriter = editFile
 			fileWriter.writeText(proString())
-			for (s in local)
-				fileWriter.writeText(s)
+			if (local.size > 0)
+				for (s in local)
+					fileWriter.writeText(s)
 
 			//设定线程池
 			val pool = Executors.newFixedThreadPool(8)
@@ -159,39 +162,11 @@ class GUI internal constructor() : JFrame(), ActionListener {
 	private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(etcPath)) }
 
 	private fun append(recode: Vector<String>) {
-		val fileWriter = File("$desktopPath\\hosts")
+		val fileWriter = editFile
 		for (i in recode) {
 			textA.append(i)
 			fileWriter.appendText(i)
 		}
-	}
-
-	private fun getDocumentFromPage(url: String): Document {
-		//不打印日志
-		LogFactory.getFactory()
-			.setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
-		java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
-		java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
-
-		//模拟Chrome
-		val webClient = WebClient(BrowserVersion.CHROME)
-		val webClientOptions = webClient.options
-
-		//禁用CSS
-		webClientOptions.isCssEnabled = false
-		//启用JS 解释器
-		webClientOptions.isJavaScriptEnabled = true
-		//JS 错误时不抛出异常
-		webClientOptions.isThrowExceptionOnScriptError = false
-		webClientOptions.isThrowExceptionOnFailingStatusCode = false
-		//连接超时时间
-		webClientOptions.timeout = 2 * 1000
-
-		val page = webClient.getPage<HtmlPage>(url)
-		//等待后台运行
-		webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
-
-		return Jsoup.parse(page.asXml(), url)
 	}
 
 	private fun readPage(url: String): Vector<String> {
@@ -229,11 +204,41 @@ class GUI internal constructor() : JFrame(), ActionListener {
 
 			recode.sort()
 		} catch (e: Exception) {
-			textA.append("\n\n${e.message}\n\n")
+			textA.append("Error in \n\n${e.message}\n\n")
 		}
-
-		recode.addElement("\n")
+		if (!recode.isEmpty())
+			recode.addElement("\n")
+		else
+			textA.append("输入的网址没有找到对应ip\n")
 		return recode
+	}
+
+	private fun getDocumentFromPage(url: String): Document {
+		//不打印日志
+		LogFactory.getFactory()
+			.setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog")
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").level = Level.OFF
+		java.util.logging.Logger.getLogger("org.apache.http.client").level = Level.OFF
+
+		//模拟Chrome
+		val webClient = WebClient(BrowserVersion.CHROME)
+		val webClientOptions = webClient.options
+
+		//禁用CSS
+		webClientOptions.isCssEnabled = false
+		//启用JS 解释器
+		webClientOptions.isJavaScriptEnabled = true
+		//JS 错误时不抛出异常
+		webClientOptions.isThrowExceptionOnScriptError = false
+		webClientOptions.isThrowExceptionOnFailingStatusCode = false
+		//连接超时时间
+		webClientOptions.timeout = 2 * 1000
+
+		val page = webClient.getPage<HtmlPage>(url)
+		//等待后台运行
+		webClient.waitForBackgroundJavaScript((10 * 1000).toLong())
+
+		return Jsoup.parse(page.asXml(), url)
 	}
 
 	private fun readHosts(): Vector<String>? {
@@ -250,7 +255,6 @@ class GUI internal constructor() : JFrame(), ActionListener {
 				s = fileReader.readLine()
 				continue
 			}
-			local.addElement("\n")
 			//以空格作为分割点
 			val fromFile = s.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 			//过滤重复
@@ -258,6 +262,8 @@ class GUI internal constructor() : JFrame(), ActionListener {
 				recode.addElement(fromFile[1])
 			s = fileReader.readLine()
 		}
+		if (local.size > 0)
+			local.addElement("\n")
 		fileReader.close()
 		recode.sort()
 		return if (recode.isEmpty()) null else recode
