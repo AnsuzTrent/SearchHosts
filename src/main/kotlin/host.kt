@@ -204,7 +204,7 @@ class GUI internal constructor() : JFrame(), ActionListener {
 
 			recode.sort()
 		} catch (e: Exception) {
-			textA.append("Error in \n\n${e.message}\n\n")
+			textA.append("\nError in \n${e.message}\n")
 		}
 		if (!recode.isEmpty())
 			recode.addElement("\n")

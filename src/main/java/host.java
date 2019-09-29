@@ -113,7 +113,7 @@ class SearchHosts extends JFrame implements ActionListener {
 			textA.append("已备份hosts 文件至  ：  " + backup.toPath());
 			return true;
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n");
 		}
 
 		return false;
@@ -129,7 +129,7 @@ class SearchHosts extends JFrame implements ActionListener {
 				Files.delete(editFile.toPath());
 			Files.copy(hostsPath.toPath(), editFile.toPath());
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n");
 		}
 		Vector<String> recode = ReadPage(str);
 		if (!recode.isEmpty() && Backup()) {
@@ -143,7 +143,7 @@ class SearchHosts extends JFrame implements ActionListener {
 		Vector<String> urls = Objects.requireNonNull(ReadHosts());
 		if (!urls.isEmpty() && Backup()) {
 			try {
-				FileWriter fileWriter = new FileWriter(editFile.getName());
+				FileWriter fileWriter = new FileWriter(editFile);
 				fileWriter.write(proString());
 				if (local.size() > 0)
 					for (String s : local)
@@ -159,12 +159,13 @@ class SearchHosts extends JFrame implements ActionListener {
 				while (true)
 					if (pool.isTerminated())
 						break;
+
 				textA.append("\n完成");
 				OpenEtc();
 				//移动，但目前不能获取管理员权限写入C 盘
 //				Files.move(bak1.toPath(), hosts.toPath());
 			} catch (IOException e) {
-				textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+				textA.append("\nError in \n" + e.getMessage() + "\n");
 			}
 		}
 	}
@@ -173,20 +174,20 @@ class SearchHosts extends JFrame implements ActionListener {
 		try {
 			Desktop.getDesktop().open(new File(EtcPath));
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n");
 		}
 	}
 
 	private static void Append(Vector<String> recode) {
 		try {
-			FileWriter fileWriter = new FileWriter(editFile.getName(), true);
+			FileWriter fileWriter = new FileWriter(editFile, true);
 			for (String str : recode) {
 				textA.append(str);
 				fileWriter.write(str);
 			}
 			fileWriter.close();
 		} catch (IOException e) {
-			textA.append("Error in \n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n\n");
 		}
 	}
 
@@ -222,7 +223,7 @@ class SearchHosts extends JFrame implements ActionListener {
 
 			Collections.sort(recode);
 		} catch (Exception e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n");
 		}
 		if (!recode.isEmpty())
 			recode.addElement("\n");
@@ -283,7 +284,7 @@ class SearchHosts extends JFrame implements ActionListener {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			textA.append("\nError in \n" + e.getMessage() + "\n");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
