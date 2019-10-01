@@ -69,7 +69,7 @@ class SearchHosts extends JFrame {
 		backup.add(openFolder);
 		add(backup, BorderLayout.SOUTH);
 
-		setTitle("test");
+		setTitle("Search Hosts in Website");
 		setSize(500, 500);        //大小
 		setResizable(false);//是否可改变大小
 		setLocationRelativeTo(null);        //出现位置居中
@@ -278,7 +278,7 @@ class SearchHosts extends JFrame {
 							fileWriter.write(s);
 					fileWriter.flush();
 					fileWriter.close();
-
+					local.clear();
 					//设定线程池
 					ExecutorService pool = Executors.newFixedThreadPool(8);
 					for (String str : urls)
@@ -290,7 +290,7 @@ class SearchHosts extends JFrame {
 
 					publish("\n完成");
 					//移动，但目前不能获取管理员权限写入C 盘
-//				Files.move(bak1.toPath(), hosts.toPath());
+//					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
 					publish("\nError in \n" + e.getMessage() + "\n");
 				}
