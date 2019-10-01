@@ -6,9 +6,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.awt.BorderLayout
 import java.awt.Desktop
+import java.awt.EventQueue
 import java.awt.GridLayout
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -19,16 +18,16 @@ import javax.swing.*
 import javax.swing.filechooser.FileSystemView
 
 fun main() {
-//	menu()
-	GUI()
+	EventQueue.invokeLater { GUI() }
 }
 
-class GUI internal constructor() : JFrame(), ActionListener {
+class GUI : JFrame() {
 	private val hosts = JTextField()
 	private val search = JButton("搜索")
 	private val textA = JTextArea("请选择功能")
 	private val backupHosts = JButton("备份")
 	private val updateHosts = JButton("更新")
+	private var scrollBar: JScrollBar
 
 	private val etcPath = "C:\\Windows\\System32\\drivers\\etc"
 	private val hostsPath = File("$etcPath\\hosts")
@@ -40,7 +39,7 @@ class GUI internal constructor() : JFrame(), ActionListener {
 		val append = JPanel()
 		append.layout = GridLayout(1, 2)
 		append.add(hosts)
-		search.addActionListener(this)
+		search.addActionListener { Search().execute() }
 		append.add(search)
 		add(append, BorderLayout.NORTH)
 
@@ -49,16 +48,21 @@ class GUI internal constructor() : JFrame(), ActionListener {
 		recode.layout = GridLayout(1, 1)
 		textA.isEditable = false//设置只读
 		textA.lineWrap = true//设置自动换行
-		recode.add(JScrollPane(textA))//创建滚动窗格
+		val scrollPane = JScrollPane(textA)
+		scrollBar = scrollPane.verticalScrollBar
+		recode.add(scrollPane)//创建滚动窗格
 		add(recode, BorderLayout.CENTER)
 
 		//底栏
 		val backup = JPanel()
-		backup.layout = GridLayout(1, 2)
-		backupHosts.addActionListener(this)
+		backup.layout = GridLayout(1, 3)
+		backupHosts.addActionListener { backup() }
 		backup.add(backupHosts)
-		updateHosts.addActionListener(this)
+		updateHosts.addActionListener { Update().execute() }
 		backup.add(updateHosts)
+		val openFolder = JButton("打开hosts 所在文件夹")
+		openFolder.addActionListener { openEtc() }
+		backup.add(openFolder)
 		add(backup, BorderLayout.SOUTH)
 
 		title = "test"
@@ -72,39 +76,32 @@ class GUI internal constructor() : JFrame(), ActionListener {
 
 		if (!System.getProperty("os.name").contains("indows")) {
 			textA.text = "目前仅支持Windows 2000/XP 及以上版本"
-			setButtonStatus(false, search, updateHosts, backupHosts)
+			setButtonStatus(false)
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
 
 	}
 
-	private fun setButtonStatus(f: Boolean, vararg buttons: JButton) {
-		for (button in buttons)
-			button.isEnabled = f
+	private fun setButtonStatus(flag: Boolean) {
+		backupHosts.isEnabled = flag
+		updateHosts.isEnabled = flag
+		search.isEnabled = flag
 	}
 
-	override fun actionPerformed(e: ActionEvent) {
-		textA.text = ""
-		when {
-			e.source === search -> {
-				setButtonStatus(false, backupHosts, updateHosts)
-				appendNew(hosts.text)
-				setButtonStatus(true, backupHosts, updateHosts)
-			}
-			e.source === backupHosts -> {
-				setButtonStatus(false, search, updateHosts)
-				backup()
-				setButtonStatus(true, search, updateHosts)
-			}
-			else -> {
-				setButtonStatus(false, search, backupHosts)
-				update()
-				setButtonStatus(true, search, backupHosts)
-			}
+	@Synchronized
+	private fun appendString(str: String) {
+		textA.append(str)
+		try {
+			Thread.sleep(25)
+			scrollBar.value = scrollBar.maximum
+		} catch (e: InterruptedException) {
+			e.printStackTrace()
 		}
+
 	}
 
 	private fun backup(): Boolean {
+		textA.text = ""
 		try {
 			//备份hosts
 			val backup = File("$editFile.bak")
@@ -117,46 +114,6 @@ class GUI internal constructor() : JFrame(), ActionListener {
 			textA.append("\n\n${e.message}\n\n")
 		}
 		return false
-	}
-
-	private fun appendNew(str: String) {
-		if (str == "") {
-			textA.append("请在搜索栏中写入网址")
-			return
-		}
-		if (editFile.exists())
-			Files.delete(editFile.toPath())
-		Files.copy(hostsPath.toPath(), editFile.toPath())
-		val recode = readPage(str)
-		if (!recode.isEmpty() && backup()) {
-			append(recode)
-			textA.append("\n 完成")
-			openEtc()
-		}
-	}
-
-	private fun update() {
-		val urls = Objects.requireNonNull<Vector<String>>(readHosts())
-		if (!urls.isEmpty() && backup()) {
-			val fileWriter = editFile
-			fileWriter.writeText(proString())
-			if (local.size > 0)
-				for (s in local)
-					fileWriter.writeText(s)
-
-			//设定线程池
-			val pool = Executors.newFixedThreadPool(8)
-			for (i in urls)
-				pool.execute(Thread { append(readPage(i)) })
-			pool.shutdown()
-			while (true)
-				if (pool.isTerminated)
-					break
-			textA.append("\n完成")
-			openEtc()
-			//移动，但目前不能获取管理员权限写入C 盘
-//			Files.move(bak1.toPath(), hosts.toPath());
-		}
 	}
 
 	private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(etcPath)) }
@@ -244,14 +201,17 @@ class GUI internal constructor() : JFrame(), ActionListener {
 	private fun readHosts(): Vector<String>? {
 		val recode = Vector<String>()
 
-		val fileReader = File("$etcPath\\hosts").bufferedReader()
+		val fileReader = hostsPath.bufferedReader()
 		var s = fileReader.readLine()
 		//逐行读取文件记录
 		while (s != null) {
 			//过滤# 开头的注释以及空行
 			if (s.startsWith("#") || s == "") {
-				if (s.startsWith("127.0.0.1"))
-					local.addElement(s)
+				s = fileReader.readLine()
+				continue
+			}
+			if (s.startsWith("127.0.0.1")) {
+				local.addElement("$s\n")
 				s = fileReader.readLine()
 				continue
 			}
@@ -293,31 +253,77 @@ class GUI internal constructor() : JFrame(), ActionListener {
 #	127.0.0.1       localhost
 #	::1             localhost
 
+
 	""".trimIndent()
 	}
 
-	fun menu() {
-		var flag = true
-		//hosts 备份位于桌面
-		while (flag) {
-			flag = false
-			println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出")
-			when (val s = readLine()) {
-				"1" -> {
-					update()
-				}
-				"2" -> {
-					println("Input the URL:")
-					readLine()?.let { appendNew(it) }
-				}
-				"3" -> flag = backup()
-				else -> {
-					if (!s.equals("quit")) {
-						println("请重试")
-						flag = true
-					}
-				}
+	inner class Update : SwingWorker<Void, String>() {
+		override fun doInBackground(): Void? {//后台任务
+			setButtonStatus(false)
+			textA.text = ""
+
+			val urls = Objects.requireNonNull<Vector<String>>(readHosts())
+			if (urls.isNotEmpty() && backup()) {
+				val fileWriter = editFile
+				fileWriter.writeText(proString())
+				if (local.size > 0)
+					for (s in local)
+						fileWriter.appendText(s)
+
+				//设定线程池
+				val pool = Executors.newFixedThreadPool(8)
+				for (i in urls)
+					pool.execute(Thread { append(readPage(i)) })
+				pool.shutdown()
+				while (true)
+					if (pool.isTerminated)
+						break
+				publish("\n完成")
+				//移动，但目前不能获取管理员权限写入C 盘
+//			Files.move(bak1.toPath(), hosts.toPath());
 			}
+			return null
+		}
+
+		override fun process(chunks: List<String>) {//更新信息
+			for (s in chunks)
+				appendString(s)
+		}
+
+		override fun done() {//任务完成后恢复按钮状态
+			scrollBar.value = scrollBar.maximum
+			setButtonStatus(true)
+		}
+
+	}
+
+	inner class Search : SwingWorker<Void, String>() {
+		override fun doInBackground(): Void? {
+			setButtonStatus(false)
+			textA.text = ""
+
+			val str = hosts.text
+			if (str == "") {
+				publish("请在搜索栏中写入网址")
+				return null
+			}
+			Files.deleteIfExists(editFile.toPath())
+			Files.copy(hostsPath.toPath(), editFile.toPath())
+			val recode = readPage(str)
+			if (!recode.isEmpty() && backup()) {
+				append(recode)
+				publish("\n 完成")
+			}
+			return null
+		}
+
+		override fun process(chunks: List<String>) {
+			for (s in chunks)
+				appendString(s)
+		}
+
+		override fun done() {
+			setButtonStatus(true)
 		}
 	}
 

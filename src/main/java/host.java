@@ -101,6 +101,7 @@ class SearchHosts extends JFrame {
 	}
 
 	private static Boolean Backup() {
+		textA.setText("");
 		try {
 			File backup = new File(editFile + ".bak");
 			if (backup.exists())
@@ -346,7 +347,6 @@ class SearchHosts extends JFrame {
 
 		@Override
 		protected void done() {
-			scrollBar.setValue(scrollBar.getMaximum());
 			setButtonStatus(true);
 		}
 	}
