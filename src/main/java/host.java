@@ -32,6 +32,7 @@ class SearchHosts extends JFrame {
 	private static JButton backupHosts = new JButton("备份");
 	private static JButton updateHosts = new JButton("更新");
 	private static JButton openFolder = new JButton("打开hosts 所在文件夹");
+	private static JScrollBar scrollBar;
 
 	private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
 	private static File hostsPath = new File(EtcPath + "\\hosts");
@@ -52,7 +53,9 @@ class SearchHosts extends JFrame {
 		recode.setLayout(new GridLayout(1, 1));
 		textA.setEditable(false);        //设置只读
 		textA.setLineWrap(true);        //设置自动换行
-		recode.add(new JScrollPane(textA));        //创建滚动窗格
+		JScrollPane scrollPane = new JScrollPane(textA);
+		scrollBar = scrollPane.getVerticalScrollBar();
+		recode.add(scrollPane);        //创建滚动窗格
 		add(recode, BorderLayout.CENTER);
 
 		//底栏
@@ -89,6 +92,12 @@ class SearchHosts extends JFrame {
 
 	private synchronized static void appendString(String str) {
 		textA.append(str);
+		try {
+			Thread.sleep(25);
+			scrollBar.setValue(scrollBar.getMaximum());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static Boolean Backup() {
@@ -204,9 +213,10 @@ class SearchHosts extends JFrame {
 			//逐行读取文件记录
 			while ((s = bufferedReader.readLine()) != null) {
 				//过滤# 开头的注释以及空行
-				if (s.startsWith("#") || s.equals("")) {
-					if (s.startsWith("127.0.0.1"))
-						local.addElement(s);
+				if (s.startsWith("#") || s.equals(""))
+					continue;
+				if (s.startsWith("127.0.0.1")) {
+					local.addElement(s + "\n");
 					continue;
 				}
 				//以空格作为分割点
@@ -252,8 +262,7 @@ class SearchHosts extends JFrame {
 	}
 
 	static class update extends SwingWorker<Void, String> {
-		@Override
-		//后台任务
+		@Override//后台任务
 		protected Void doInBackground() {
 			setButtonStatus(false);
 			textA.setText("");
@@ -290,16 +299,15 @@ class SearchHosts extends JFrame {
 			return null;
 		}
 
-		@Override
-		//更新信息
+		@Override//更新信息
 		protected void process(List<String> chunks) {
 			for (String s : chunks)
 				appendString(s);
 		}
 
-		@Override
-		//任务完成后恢复按钮状态
+		@Override//任务完成后恢复按钮状态
 		protected void done() {
+			scrollBar.setValue(scrollBar.getMaximum());
 			setButtonStatus(true);
 		}
 
@@ -338,6 +346,7 @@ class SearchHosts extends JFrame {
 
 		@Override
 		protected void done() {
+			scrollBar.setValue(scrollBar.getMaximum());
 			setButtonStatus(true);
 		}
 	}
