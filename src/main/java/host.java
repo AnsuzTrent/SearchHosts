@@ -12,8 +12,8 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,8 +21,7 @@ import java.util.logging.Level;
 
 public class host {
 	public static void main(String[] args) {
-//		Menu();
-		new SearchHosts();
+		EventQueue.invokeLater(SearchHosts::new);
 	}
 }
 
@@ -34,12 +33,17 @@ class SearchHosts extends JFrame {
 	private static JButton updateHosts = new JButton("更新");
 	private static JButton openFolder = new JButton("打开hosts 所在文件夹");
 
+	private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
+	private static File hostsPath = new File(EtcPath + "\\hosts");
+	private static File editFile = new File(FileSystemView.getFileSystemView().getHomeDirectory().getPath() + "\\hosts");
+	private static Vector<String> local = new Vector<>();
+
 	SearchHosts() {
 		//顶栏
 		JPanel append = new JPanel();
 		append.setLayout(new GridLayout(1, 2));
 		append.add(hosts);
-		search.addActionListener(e -> SearchUtil.AppendNew(hosts.getText()));
+		search.addActionListener(e -> new search().execute());
 		append.add(search);
 		add(append, BorderLayout.NORTH);
 
@@ -54,11 +58,11 @@ class SearchHosts extends JFrame {
 		//底栏
 		JPanel backup = new JPanel();
 		backup.setLayout(new GridLayout(1, 3));
-		backupHosts.addActionListener(e -> SearchUtil.Backup());
+		backupHosts.addActionListener(e -> Backup());
 		backup.add(backupHosts);
-		updateHosts.addActionListener(e -> SearchUtil.Update());
+		updateHosts.addActionListener(e -> new update().execute());
 		backup.add(updateHosts);
-		openFolder.addActionListener(e -> SearchUtil.OpenEtc());
+		openFolder.addActionListener(e -> OpenEtc());
 		backup.add(openFolder);
 		add(backup, BorderLayout.SOUTH);
 
@@ -78,54 +82,182 @@ class SearchHosts extends JFrame {
 	}
 
 	private static void setButtonStatus(boolean flag) {
-		openFolder.setEnabled(flag);
 		backupHosts.setEnabled(flag);
 		updateHosts.setEnabled(flag);
 		search.setEnabled(flag);
 	}
 
-	static class SearchUtil {
-		private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
-		private static File hostsPath = new File(EtcPath + "\\hosts");
-		private static File editFile = new File(FileSystemView.getFileSystemView().getHomeDirectory().getPath() + "\\hosts");
-		private static Vector<String> local = new Vector<>();
+	private synchronized static void appendString(String str) {
+		textA.append(str);
+	}
 
-		static Boolean Backup() {
-			try {
-				File backup = new File(editFile + ".bak");
-				if (backup.exists())
-					Files.delete(backup.toPath());
-				Files.copy(hostsPath.toPath(), backup.toPath());
-				textA.append("已备份hosts 文件至  ：  " + backup.toPath());
-				return true;
-			} catch (IOException e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n");
-			}
-
-			return false;
+	private static Boolean Backup() {
+		try {
+			File backup = new File(editFile + ".bak");
+			if (backup.exists())
+				Files.delete(backup.toPath());
+			Files.copy(hostsPath.toPath(), backup.toPath());
+			appendString("已备份hosts 文件至  ：  " + backup.toPath());
+			return true;
+		} catch (IOException e) {
+			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
 
-		static void AppendNew(String str) {
-			if (str.equals("")) {
-				textA.append("请在搜索栏中写入网址");
-				return;
-			}
-			try {
-				if (editFile.exists())
-					Files.delete(editFile.toPath());
-				Files.copy(hostsPath.toPath(), editFile.toPath());
-			} catch (IOException e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n");
-			}
-			Vector<String> recode = ReadPage(str);
-			if (!recode.isEmpty() && Backup()) {
-				Append(recode);
-				textA.append("\n 完成");
-				OpenEtc();
-			}
-		}
+		return false;
+	}
 
-		static void Update() {
+	private static void OpenEtc() {
+		try {
+			Desktop.getDesktop().open(new File(EtcPath));
+		} catch (IOException e) {
+			appendString("\nError in \n" + e.getMessage() + "\n");
+		}
+	}
+
+	private static void Append(Vector<String> recode) {
+		try {
+			FileWriter fileWriter = new FileWriter(editFile, true);
+			for (String str : recode) {
+				appendString(str);
+				fileWriter.write(str);
+			}
+			fileWriter.close();
+		} catch (IOException e) {
+			appendString("\nError in \n" + e.getMessage() + "\n\n");
+		}
+	}
+
+	private static Vector<String> ReadPage(String url) {
+		String AimURL = "http://tool.chinaz.com/dns?type=1&host=" + url + "&ip=";
+		//设置代理
+//		System.setProperty("http.proxyHost", "127.0.0.1");
+//		System.setProperty("http.proxyPort", "8090");
+
+		Vector<String> recode = new Vector<>();
+
+		try {
+			Document doc = getDocumentFromPage(AimURL);
+
+			String host = doc.getElementById("host").attr("value");
+
+			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]");
+			String[] IP = new String[IPTmp.length];
+			int i = 0, j = 0;
+			while (i < IPTmp.length) {
+				IPTmp[i] = IPTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
+				if (IPTmp[i].equals("")) {
+					i++;
+					continue;
+				}
+				IP[j++] = IPTmp[i++];
+			}
+
+			for (String s : IP)
+				if (!(s == null))
+					if (recode.indexOf("\n" + s + " " + host) == -1 & !s.equals("-"))
+						recode.addElement("\n" + s + " " + host);
+
+			Collections.sort(recode);
+		} catch (Exception e) {
+			appendString("\nError in \n" + e.getMessage() + "\n");
+		}
+		if (!recode.isEmpty())
+			recode.addElement("\n");
+		else
+			appendString("输入的网址没有找到对应ip\n");
+		return recode;
+	}
+
+	private static Document getDocumentFromPage(String url) throws IOException {
+		//不打印日志
+		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		java.util.logging.Logger.getLogger("org.apache.http.client").setLevel(Level.OFF);
+
+		//模拟Chrome
+		WebClient webClient = new WebClient(BrowserVersion.CHROME);
+		WebClientOptions webClientOptions = webClient.getOptions();
+
+		//禁用CSS
+		webClientOptions.setCssEnabled(false);
+		//启用JS 解释器
+		webClientOptions.setJavaScriptEnabled(true);
+		//JS 错误时不抛出异常
+		webClientOptions.setThrowExceptionOnScriptError(false);
+		webClientOptions.setThrowExceptionOnFailingStatusCode(false);
+		//连接超时时间
+		webClientOptions.setTimeout(2 * 1000);
+
+		HtmlPage page = webClient.getPage(url);
+		//等待后台运行
+		webClient.waitForBackgroundJavaScript(10 * 1000);
+
+		return Jsoup.parse(page.asXml(), url);
+	}
+
+	private static Vector<String> ReadHosts() {
+		Vector<String> recode = new Vector<>();
+		try {
+			FileReader fileReader = new FileReader(hostsPath);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			String s;
+			//逐行读取文件记录
+			while ((s = bufferedReader.readLine()) != null) {
+				//过滤# 开头的注释以及空行
+				if (s.startsWith("#") || s.equals("")) {
+					if (s.startsWith("127.0.0.1"))
+						local.addElement(s);
+					continue;
+				}
+				//以空格作为分割点
+				String[] fromFile = s.split(" ");
+				//过滤重复
+				if (recode.indexOf(fromFile[1]) == -1)
+					recode.addElement(fromFile[1]);
+			}
+			if (local.size() > 0)
+				local.addElement("\n");
+			fileReader.close();
+			bufferedReader.close();
+		} catch (IOException e) {
+			appendString("\nError in \n" + e.getMessage() + "\n");
+		}
+		Collections.sort(recode);
+		return recode.isEmpty() ? null : recode;
+	}
+
+	private static String proString() {
+		return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +
+				"#\n" +
+				"# This is getDocumentFromPage sample HOSTS file used by Microsoft TCP/IP for Windows.\n" +
+				"#\n" +
+				"# This file contains the mappings of IP addresses to host names. Each\n" +
+				"# entry should be kept on an individual line. The IP address should\n" +
+				"# be placed in the first column followed by the corresponding host name.\n" +
+				"# The IP address and the host name should be separated by at least one\n" +
+				"# space.\n" +
+				"#\n" +
+				"# Additionally, comments (such as these) may be inserted on individual\n" +
+				"# lines or following the machine name denoted by getDocumentFromPage '#' symbol.\n" +
+				"#\n" +
+				"# For example:\n" +
+				"#\n" +
+				"#      102.54.94.97     rhino.acme.com          # source server\n" +
+				"#       38.25.63.10     x.acme.com              # x client host\n" +
+				"\n" +
+				"# localhost name resolution is handled within DNS itself.\n" +
+				"#\t127.0.0.1       localhost\n" +
+				"#\t::1             localhost\n" +
+				"\n";
+	}
+
+	static class update extends SwingWorker<Void, String> {
+		@Override
+		//后台任务
+		protected Void doInBackground() {
+			setButtonStatus(false);
+			textA.setText("");
+
 			Vector<String> urls = Objects.requireNonNull(ReadHosts());
 			if (!urls.isEmpty() && Backup()) {
 				try {
@@ -140,193 +272,74 @@ class SearchHosts extends JFrame {
 					//设定线程池
 					ExecutorService pool = Executors.newFixedThreadPool(8);
 					for (String str : urls)
-						pool.execute(new Thread(() -> Append(ReadPage(str))));
+						pool.execute(() -> Append(ReadPage(str)));
 					pool.shutdown();
 					while (true)
 						if (pool.isTerminated())
 							break;
 
-					textA.append("\n完成");
-					OpenEtc();
+					publish("\n完成");
 					//移动，但目前不能获取管理员权限写入C 盘
 //				Files.move(bak1.toPath(), hosts.toPath());
 				} catch (IOException e) {
-					textA.append("\nError in \n" + e.getMessage() + "\n");
+					publish("\nError in \n" + e.getMessage() + "\n");
 				}
 			}
+
+
+			return null;
 		}
 
-		static void OpenEtc() {
+		@Override
+		//更新信息
+		protected void process(List<String> chunks) {
+			for (String s : chunks)
+				appendString(s);
+		}
+
+		@Override
+		//任务完成后恢复按钮状态
+		protected void done() {
+			setButtonStatus(true);
+		}
+
+	}
+
+	static class search extends SwingWorker<Void, String> {
+		@Override
+		protected Void doInBackground() {
+			setButtonStatus(false);
+			textA.setText("");
+
+			String str = hosts.getText();
+			if (str.equals("")) {
+				publish("请在搜索栏中写入网址\n");
+				return null;
+			}
 			try {
-				Desktop.getDesktop().open(new File(EtcPath));
+				Files.deleteIfExists(editFile.toPath());
+				Files.copy(hostsPath.toPath(), editFile.toPath());
 			} catch (IOException e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n");
+				publish("\nError in \n" + e.getMessage() + "\n");
 			}
-		}
-
-		private static void Append(Vector<String> recode) {
-			try {
-				FileWriter fileWriter = new FileWriter(editFile, true);
-				for (String str : recode) {
-					textA.append(str);
-					fileWriter.write(str);
-				}
-				fileWriter.close();
-			} catch (IOException e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n\n");
+			Vector<String> recode = ReadPage(str);
+			if (!recode.isEmpty() && Backup()) {
+				Append(recode);
+				publish("\n 完成");
 			}
+			return null;
 		}
 
-		private static Vector<String> ReadPage(String url) {
-			String AimURL = "http://tool.chinaz.com/dns?type=1&host=" + url + "&ip=";
-			//设置代理
-//		System.setProperty("http.proxyHost", "127.0.0.1");
-//		System.setProperty("http.proxyPort", "8090");
-
-			Vector<String> recode = new Vector<>();
-
-			try {
-				Document doc = getDocumentFromPage(AimURL);
-
-				String host = doc.getElementById("host").attr("value");
-
-				String[] IPTmp = doc.getElementsByClass("w60-0 tl").text().split("\\[.*?]");
-				String[] IP = new String[IPTmp.length];
-				int i = 0, j = 0;
-				while (i < IPTmp.length) {
-					IPTmp[i] = IPTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
-					if (IPTmp[i].equals("")) {
-						i++;
-						continue;
-					}
-					IP[j++] = IPTmp[i++];
-				}
-
-				for (String s : IP)
-					if (!(s == null))
-						if (recode.indexOf("\n" + s + " " + host) == -1 & !s.equals("-"))
-							recode.addElement("\n" + s + " " + host);
-
-				Collections.sort(recode);
-			} catch (Exception e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n");
-			}
-			if (!recode.isEmpty())
-				recode.addElement("\n");
-			else
-				textA.append("输入的网址没有找到对应ip\n");
-			return recode;
+		@Override
+		protected void process(List<String> chunks) {
+			for (String s : chunks)
+				appendString(s);
 		}
 
-		private static Document getDocumentFromPage(String url) throws IOException {
-			//不打印日志
-			LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
-			java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
-			java.util.logging.Logger.getLogger("org.apache.http.client").setLevel(Level.OFF);
-
-			//模拟Chrome
-			WebClient webClient = new WebClient(BrowserVersion.CHROME);
-			WebClientOptions webClientOptions = webClient.getOptions();
-
-			//禁用CSS
-			webClientOptions.setCssEnabled(false);
-			//启用JS 解释器
-			webClientOptions.setJavaScriptEnabled(true);
-			//JS 错误时不抛出异常
-			webClientOptions.setThrowExceptionOnScriptError(false);
-			webClientOptions.setThrowExceptionOnFailingStatusCode(false);
-			//连接超时时间
-			webClientOptions.setTimeout(2 * 1000);
-
-			HtmlPage page = webClient.getPage(url);
-			//等待后台运行
-			webClient.waitForBackgroundJavaScript(10 * 1000);
-
-			return Jsoup.parse(page.asXml(), url);
-		}
-
-		private static Vector<String> ReadHosts() {
-			Vector<String> recode = new Vector<>();
-			try {
-				FileReader fileReader = new FileReader(hostsPath);
-				BufferedReader bufferedReader = new BufferedReader(fileReader);
-				String s;
-				//逐行读取文件记录
-				while ((s = bufferedReader.readLine()) != null) {
-					//过滤# 开头的注释以及空行
-					if (s.startsWith("#") || s.equals("")) {
-						if (s.startsWith("127.0.0.1"))
-							local.addElement(s);
-						continue;
-					}
-					//以空格作为分割点
-					String[] fromFile = s.split(" ");
-					//过滤重复
-					if (recode.indexOf(fromFile[1]) == -1)
-						recode.addElement(fromFile[1]);
-				}
-				if (local.size() > 0)
-					local.addElement("\n");
-				fileReader.close();
-				bufferedReader.close();
-			} catch (IOException e) {
-				textA.append("\nError in \n" + e.getMessage() + "\n");
-			}
-			Collections.sort(recode);
-			return recode.isEmpty() ? null : recode;
-		}
-
-		private static String proString() {
-			return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +
-					"#\n" +
-					"# This is getDocumentFromPage sample HOSTS file used by Microsoft TCP/IP for Windows.\n" +
-					"#\n" +
-					"# This file contains the mappings of IP addresses to host names. Each\n" +
-					"# entry should be kept on an individual line. The IP address should\n" +
-					"# be placed in the first column followed by the corresponding host name.\n" +
-					"# The IP address and the host name should be separated by at least one\n" +
-					"# space.\n" +
-					"#\n" +
-					"# Additionally, comments (such as these) may be inserted on individual\n" +
-					"# lines or following the machine name denoted by getDocumentFromPage '#' symbol.\n" +
-					"#\n" +
-					"# For example:\n" +
-					"#\n" +
-					"#      102.54.94.97     rhino.acme.com          # source server\n" +
-					"#       38.25.63.10     x.acme.com              # x client host\n" +
-					"\n" +
-					"# localhost name resolution is handled within DNS itself.\n" +
-					"#\t127.0.0.1       localhost\n" +
-					"#\t::1             localhost\n" +
-					"\n";
-		}
-
-		private static void Menu() {
-			//hosts 备份位于桌面
-			Scanner sc = new Scanner(System.in);
-			boolean flag = true;
-			while (flag) {
-				flag = false;
-				System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出");
-				String s = sc.nextLine();
-				switch (s) {
-					case "1":
-						Update();
-						break;
-					case "2":
-						System.out.println("Input the URL:");
-						AppendNew(sc.next());
-						break;
-					case "3":
-						Backup();
-						break;
-					default:
-						if (!s.equals("quit")) {
-							System.out.println("请重试");
-							flag = true;
-						}
-				}
-			}
+		@Override
+		protected void done() {
+			setButtonStatus(true);
 		}
 	}
+
 }
