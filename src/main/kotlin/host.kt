@@ -65,7 +65,7 @@ class GUI : JFrame() {
 		backup.add(openFolder)
 		add(backup, BorderLayout.SOUTH)
 
-		title = "test"
+		title = "Search Hosts in Website"
 		setSize(500, 500)        //大小
 		isResizable = false    //是否可改变大小
 		setLocationRelativeTo(null)        //出现位置居中
@@ -269,7 +269,7 @@ class GUI : JFrame() {
 				if (local.size > 0)
 					for (s in local)
 						fileWriter.appendText(s)
-
+				local.clear()
 				//设定线程池
 				val pool = Executors.newFixedThreadPool(8)
 				for (i in urls)
@@ -280,7 +280,7 @@ class GUI : JFrame() {
 						break
 				publish("\n完成")
 				//移动，但目前不能获取管理员权限写入C 盘
-//			Files.move(bak1.toPath(), hosts.toPath());
+//				Files.move(editFile.toPath(), hostsPath.toPath());
 			}
 			return null
 		}
