@@ -9,13 +9,11 @@ import org.jsoup.nodes.Document;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,17 +21,18 @@ import java.util.logging.Level;
 
 public class host {
 	public static void main(String[] args) {
-//		Menu();
-		new SearchHosts();
+		EventQueue.invokeLater(SearchHosts::new);
 	}
 }
 
-class SearchHosts extends JFrame implements ActionListener {
+class SearchHosts extends JFrame {
 	private static JTextField hosts = new JTextField();
 	private static JButton search = new JButton("搜索");
 	private static JTextArea textA = new JTextArea("请选择功能");
 	private static JButton backupHosts = new JButton("备份");
 	private static JButton updateHosts = new JButton("更新");
+	private static JButton openFolder = new JButton("打开hosts 所在文件夹");
+	private static JScrollBar scrollBar;
 
 	private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
 	private static File hostsPath = new File(EtcPath + "\\hosts");
@@ -45,7 +44,7 @@ class SearchHosts extends JFrame implements ActionListener {
 		JPanel append = new JPanel();
 		append.setLayout(new GridLayout(1, 2));
 		append.add(hosts);
-		search.addActionListener(this);
+		search.addActionListener(e -> new search().execute());
 		append.add(search);
 		add(append, BorderLayout.NORTH);
 
@@ -54,16 +53,20 @@ class SearchHosts extends JFrame implements ActionListener {
 		recode.setLayout(new GridLayout(1, 1));
 		textA.setEditable(false);        //设置只读
 		textA.setLineWrap(true);        //设置自动换行
-		recode.add(new JScrollPane(textA));        //创建滚动窗格
+		JScrollPane scrollPane = new JScrollPane(textA);
+		scrollBar = scrollPane.getVerticalScrollBar();
+		recode.add(scrollPane);        //创建滚动窗格
 		add(recode, BorderLayout.CENTER);
 
 		//底栏
 		JPanel backup = new JPanel();
-		backup.setLayout(new GridLayout(1, 2));
-		backupHosts.addActionListener(this);
+		backup.setLayout(new GridLayout(1, 3));
+		backupHosts.addActionListener(e -> Backup());
 		backup.add(backupHosts);
-		updateHosts.addActionListener(this);
+		updateHosts.addActionListener(e -> new update().execute());
 		backup.add(updateHosts);
+		openFolder.addActionListener(e -> OpenEtc());
+		backup.add(openFolder);
 		add(backup, BorderLayout.SOUTH);
 
 		setTitle("test");
@@ -76,117 +79,61 @@ class SearchHosts extends JFrame implements ActionListener {
 
 		if (!System.getProperty("os.name").contains("indows")) {
 			textA.setText("\n目前仅支持Windows 2000/XP 及以上版本");
-			setButtonStatus(false, search, updateHosts, backupHosts);
+			setButtonStatus(false);
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
 	}
 
-	private static void setButtonStatus(boolean f, JButton... buttons) {
-		for (JButton button : buttons)
-			button.setEnabled(f);
+	private static void setButtonStatus(boolean flag) {
+		backupHosts.setEnabled(flag);
+		updateHosts.setEnabled(flag);
+		search.setEnabled(flag);
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		textA.setText("");
-		if (e.getSource() == search) {
-			setButtonStatus(false, backupHosts, updateHosts);
-			AppendNew(hosts.getText());
-			setButtonStatus(true, backupHosts, updateHosts);
-		} else if (e.getSource() == backupHosts) {
-			setButtonStatus(false, search, updateHosts);
-			Backup();
-			setButtonStatus(true, search, updateHosts);
-		} else {
-			setButtonStatus(false, search, backupHosts);
-			Update();
-			setButtonStatus(true, search, backupHosts);
+	private synchronized static void appendString(String str) {
+		textA.append(str);
+		try {
+			Thread.sleep(25);
+			scrollBar.setValue(scrollBar.getMaximum());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
 	private static Boolean Backup() {
+		textA.setText("");
 		try {
 			File backup = new File(editFile + ".bak");
 			if (backup.exists())
 				Files.delete(backup.toPath());
 			Files.copy(hostsPath.toPath(), backup.toPath());
-			textA.append("已备份hosts 文件至  ：  " + backup.toPath());
+			appendString("已备份hosts 文件至  ：  " + backup.toPath());
 			return true;
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
 
 		return false;
-	}
-
-	private static void AppendNew(String str) {
-		if (str.equals("")) {
-			textA.append("请在搜索栏中写入网址");
-			return;
-		}
-		try {
-			if (editFile.exists())
-				Files.delete(editFile.toPath());
-			Files.copy(hostsPath.toPath(), editFile.toPath());
-		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
-		}
-		Vector<String> recode = ReadPage(str);
-		if (!recode.isEmpty() && Backup()) {
-			Append(recode);
-			textA.append("\n 完成");
-			OpenEtc();
-		}
-	}
-
-	private static void Update() {
-		Vector<String> urls = Objects.requireNonNull(ReadHosts());
-		if (!urls.isEmpty() && Backup()) {
-			try {
-				FileWriter fileWriter = new FileWriter(editFile.getName());
-				fileWriter.write(proString());
-				if (local.size() > 0)
-					for (String s : local)
-						fileWriter.write(s);
-				fileWriter.flush();
-				fileWriter.close();
-
-				//设定线程池
-				ExecutorService pool = Executors.newFixedThreadPool(8);
-				for (String str : urls)
-					pool.execute(new Thread(() -> Append(ReadPage(str))));
-				pool.shutdown();
-				while (true)
-					if (pool.isTerminated())
-						break;
-				textA.append("\n完成");
-				OpenEtc();
-				//移动，但目前不能获取管理员权限写入C 盘
-//				Files.move(bak1.toPath(), hosts.toPath());
-			} catch (IOException e) {
-				textA.append("Error in \n\n" + e.getMessage() + "\n\n");
-			}
-		}
 	}
 
 	private static void OpenEtc() {
 		try {
 			Desktop.getDesktop().open(new File(EtcPath));
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
 	}
 
 	private static void Append(Vector<String> recode) {
 		try {
-			FileWriter fileWriter = new FileWriter(editFile.getName(), true);
+			FileWriter fileWriter = new FileWriter(editFile, true);
 			for (String str : recode) {
-				textA.append(str);
+				appendString(str);
 				fileWriter.write(str);
 			}
 			fileWriter.close();
 		} catch (IOException e) {
-			textA.append("Error in \n" + e.getMessage() + "\n\n");
+			appendString("\nError in \n" + e.getMessage() + "\n\n");
 		}
 	}
 
@@ -222,12 +169,12 @@ class SearchHosts extends JFrame implements ActionListener {
 
 			Collections.sort(recode);
 		} catch (Exception e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
 		if (!recode.isEmpty())
 			recode.addElement("\n");
 		else
-			textA.append("输入的网址没有找到对应ip\n");
+			appendString("输入的网址没有找到对应ip\n");
 		return recode;
 	}
 
@@ -267,9 +214,10 @@ class SearchHosts extends JFrame implements ActionListener {
 			//逐行读取文件记录
 			while ((s = bufferedReader.readLine()) != null) {
 				//过滤# 开头的注释以及空行
-				if (s.startsWith("#") || s.equals("")) {
-					if (s.startsWith("127.0.0.1"))
-						local.addElement(s);
+				if (s.startsWith("#") || s.equals(""))
+					continue;
+				if (s.startsWith("127.0.0.1")) {
+					local.addElement(s + "\n");
 					continue;
 				}
 				//以空格作为分割点
@@ -283,7 +231,7 @@ class SearchHosts extends JFrame implements ActionListener {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			textA.append("Error in \n\n" + e.getMessage() + "\n\n");
+			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
@@ -314,31 +262,92 @@ class SearchHosts extends JFrame implements ActionListener {
 				"\n";
 	}
 
-	private static void Menu() {
-		//hosts 备份位于桌面
-		Scanner sc = new Scanner(System.in);
-		boolean flag = true;
-		while (flag) {
-			flag = false;
-			System.out.println("1 更新hosts\n" + "2 新增URL\n" + "3 备份hosts\t" + "输入quit 退出");
-			String s = sc.nextLine();
-			switch (s) {
-				case "1":
-					Update();
-					break;
-				case "2":
-					System.out.println("Input the URL:");
-					AppendNew(sc.next());
-					break;
-				case "3":
-					Backup();
-					break;
-				default:
-					if (!s.equals("quit")) {
-						System.out.println("请重试");
-						flag = true;
-					}
+	static class update extends SwingWorker<Void, String> {
+		@Override//后台任务
+		protected Void doInBackground() {
+			setButtonStatus(false);
+			textA.setText("");
+
+			Vector<String> urls = Objects.requireNonNull(ReadHosts());
+			if (!urls.isEmpty() && Backup()) {
+				try {
+					FileWriter fileWriter = new FileWriter(editFile);
+					fileWriter.write(proString());
+					if (local.size() > 0)
+						for (String s : local)
+							fileWriter.write(s);
+					fileWriter.flush();
+					fileWriter.close();
+
+					//设定线程池
+					ExecutorService pool = Executors.newFixedThreadPool(8);
+					for (String str : urls)
+						pool.execute(() -> Append(ReadPage(str)));
+					pool.shutdown();
+					while (true)
+						if (pool.isTerminated())
+							break;
+
+					publish("\n完成");
+					//移动，但目前不能获取管理员权限写入C 盘
+//				Files.move(bak1.toPath(), hosts.toPath());
+				} catch (IOException e) {
+					publish("\nError in \n" + e.getMessage() + "\n");
+				}
 			}
+
+
+			return null;
+		}
+
+		@Override//更新信息
+		protected void process(List<String> chunks) {
+			for (String s : chunks)
+				appendString(s);
+		}
+
+		@Override//任务完成后恢复按钮状态
+		protected void done() {
+			scrollBar.setValue(scrollBar.getMaximum());
+			setButtonStatus(true);
+		}
+
+	}
+
+	static class search extends SwingWorker<Void, String> {
+		@Override
+		protected Void doInBackground() {
+			setButtonStatus(false);
+			textA.setText("");
+
+			String str = hosts.getText();
+			if (str.equals("")) {
+				publish("请在搜索栏中写入网址\n");
+				return null;
+			}
+			try {
+				Files.deleteIfExists(editFile.toPath());
+				Files.copy(hostsPath.toPath(), editFile.toPath());
+			} catch (IOException e) {
+				publish("\nError in \n" + e.getMessage() + "\n");
+			}
+			Vector<String> recode = ReadPage(str);
+			if (!recode.isEmpty() && Backup()) {
+				Append(recode);
+				publish("\n 完成");
+			}
+			return null;
+		}
+
+		@Override
+		protected void process(List<String> chunks) {
+			for (String s : chunks)
+				appendString(s);
+		}
+
+		@Override
+		protected void done() {
+			setButtonStatus(true);
 		}
 	}
 
