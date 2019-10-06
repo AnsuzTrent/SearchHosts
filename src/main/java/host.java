@@ -335,6 +335,13 @@ class SearchHosts extends JFrame {
 			if (!recode.isEmpty() && Backup()) {
 				Append(recode);
 				publish("\n 完成");
+			} else {
+				try {
+					Files.deleteIfExists(editFile.toPath());
+				} catch (IOException e) {
+					publish("\nError in \n" + e.getMessage() + "\n");
+
+				}
 			}
 			return null;
 		}

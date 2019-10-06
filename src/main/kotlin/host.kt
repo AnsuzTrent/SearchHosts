@@ -313,7 +313,8 @@ class GUI : JFrame() {
 			if (!recode.isEmpty() && backup()) {
 				append(recode)
 				publish("\n 完成")
-			}
+			} else
+				Files.deleteIfExists(editFile.toPath())
 			return null
 		}
 
