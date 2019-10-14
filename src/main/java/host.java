@@ -216,7 +216,7 @@ class SearchHosts extends JFrame {
 				//过滤# 开头的注释以及空行
 				if (s.startsWith("#") || s.equals(""))
 					continue;
-				if (s.startsWith("127.0.0.1")) {
+				if (s.startsWith("127.0.0.1") || s.startsWith("0.0.0.0")) {
 					local.addElement(s + "\n");
 					continue;
 				}
