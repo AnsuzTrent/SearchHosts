@@ -23,11 +23,11 @@ import java.util.logging.Level;
 
 public class host {
 	public static void main(String[] args) {
-		EventQueue.invokeLater(SearchHosts::new);
+		EventQueue.invokeLater(SearchUtil::new);
 	}
 }
 
-class SearchHosts extends JFrame {
+class SearchUtil extends JFrame {
 	private static JTextField hosts = new JTextField();
 	private static JButton search = new JButton("搜索");
 	private static JTextArea textA = new JTextArea("请选择功能");
@@ -42,7 +42,7 @@ class SearchHosts extends JFrame {
 	private static File editFile = new File(FileSystemView.getFileSystemView().getHomeDirectory().getPath() + "\\hosts");
 	private static Vector<String> local = new Vector<>();
 
-	SearchHosts() {
+	SearchUtil() {
 		//顶栏
 		JPanel append = new JPanel();
 		append.setLayout(new GridLayout(1, 2));
