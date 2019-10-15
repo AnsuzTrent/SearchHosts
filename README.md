@@ -1,7 +1,10 @@
 # SearchHosts
 
 #### 介绍
-更加便捷地更改hosts 文件以访问类似于 "Github.com"、"www.python.org" 的网站
+更加便捷地更改hosts 文件以访问类似于 "[Github.com](https://github.com)"、"www.python.org" 的网站
+
+感谢站长之家（[tool.chinaz.com/dns](https://tool.chinaz.com/dns)）提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
+
 
 #### 软件架构
 分为"java"、"kotlin" 两部分，其作用完全一样，是学习kotlin 时诞生的产物
