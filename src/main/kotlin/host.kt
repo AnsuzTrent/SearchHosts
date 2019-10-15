@@ -1,6 +1,7 @@
 import com.gargoylesoftware.htmlunit.BrowserVersion
 import com.gargoylesoftware.htmlunit.WebClient
 import com.gargoylesoftware.htmlunit.html.HtmlPage
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.logging.LogFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -8,8 +9,11 @@ import java.awt.BorderLayout
 import java.awt.Desktop
 import java.awt.EventQueue
 import java.awt.GridLayout
+import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
+import java.io.InputStreamReader
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.Executors
@@ -27,6 +31,7 @@ class GUI : JFrame() {
 	private val textA = JTextArea("请选择功能")
 	private val backupHosts = JButton("备份")
 	private val updateHosts = JButton("更新")
+	private val flushDNS = JButton("刷新DNS 配置")
 	private var scrollBar: JScrollBar
 
 	private val etcPath = "C:\\Windows\\System32\\drivers\\etc"
@@ -55,7 +60,7 @@ class GUI : JFrame() {
 
 		//底栏
 		val backup = JPanel()
-		backup.layout = GridLayout(1, 3)
+		backup.layout = GridLayout(1, 4)
 		backupHosts.addActionListener { backup() }
 		backup.add(backupHosts)
 		updateHosts.addActionListener { Update().execute() }
@@ -63,6 +68,8 @@ class GUI : JFrame() {
 		val openFolder = JButton("打开hosts 所在文件夹")
 		openFolder.addActionListener { openEtc() }
 		backup.add(openFolder)
+		flushDNS.addActionListener { toFlushDNS() }
+		backup.add(flushDNS)
 		add(backup, BorderLayout.SOUTH)
 
 		title = "Search Hosts in Website"
@@ -117,6 +124,20 @@ class GUI : JFrame() {
 	}
 
 	private val openEtc: () -> Unit = { Desktop.getDesktop().open(File(etcPath)) }
+
+	private fun toFlushDNS() {
+		textA.text = ""
+		val process = Runtime.getRuntime().exec("ipconfig /toFlushDNS")
+		val br = BufferedReader(InputStreamReader(process.inputStream, Charset.forName("GBK")))
+		var line = br.readLine()
+		while (line != null)
+			if (!StringUtils.isEmpty(line)) {
+				appendString(line + "\n")
+				line = br.readLine()
+			}
+
+		br.close()
+	}
 
 	private fun append(recode: Vector<String>) {
 		val fileWriter = editFile
