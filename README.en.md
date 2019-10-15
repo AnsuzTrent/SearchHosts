@@ -3,7 +3,7 @@
 #### Description
 It's easier to change the hosts file to visit a website like "[Github.com](https://github.com)", "www.python.org" 
 
-Thanks to the ([tool.chinaz.com/dns ](https://tool.chinaz.com/dns)) provided search interface support —— although they don't know that I used their website in this app.
+Thanks to the ([tool.chinaz.com/dns](https://tool.chinaz.com/dns)) provided search interface support —— although they don't know that I used their website in this app.
 
 
 #### Software Architecture
