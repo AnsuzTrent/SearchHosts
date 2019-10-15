@@ -2,6 +2,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,6 +11,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +34,7 @@ class SearchHosts extends JFrame {
 	private static JButton backupHosts = new JButton("备份");
 	private static JButton updateHosts = new JButton("更新");
 	private static JButton openFolder = new JButton("打开hosts 所在文件夹");
+	private static JButton flushDNS = new JButton("刷新DNS 配置");
 	private static JScrollBar scrollBar;
 
 	private static String EtcPath = "C:\\Windows\\System32\\drivers\\etc";
@@ -60,13 +63,15 @@ class SearchHosts extends JFrame {
 
 		//底栏
 		JPanel backup = new JPanel();
-		backup.setLayout(new GridLayout(1, 3));
+		backup.setLayout(new GridLayout(1, 4));
 		backupHosts.addActionListener(e -> Backup());
 		backup.add(backupHosts);
 		updateHosts.addActionListener(e -> new update().execute());
 		backup.add(updateHosts);
 		openFolder.addActionListener(e -> OpenEtc());
 		backup.add(openFolder);
+		flushDNS.addActionListener(e -> exec("ipconfig /flushDNS"));
+		backup.add(flushDNS);
 		add(backup, BorderLayout.SOUTH);
 
 		setTitle("Search Hosts in Website");
@@ -119,6 +124,23 @@ class SearchHosts extends JFrame {
 	private static void OpenEtc() {
 		try {
 			Desktop.getDesktop().open(new File(EtcPath));
+		} catch (IOException e) {
+			appendString("\nError in \n" + e.getMessage() + "\n");
+		}
+	}
+
+	private static void exec(String cmd) {
+		textA.setText("");
+		try {
+			Process process = Runtime.getRuntime().exec(cmd);
+			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));//将字符流以缓存的形式一行一行输出
+			String line;
+			while ((line = br.readLine()) != null)
+				if (!StringUtils.isEmpty(line)) {
+					appendString(line + "\n");
+				}
+
+			br.close();
 		} catch (IOException e) {
 			appendString("\nError in \n" + e.getMessage() + "\n");
 		}
