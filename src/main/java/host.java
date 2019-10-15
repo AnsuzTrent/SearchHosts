@@ -70,7 +70,7 @@ class SearchHosts extends JFrame {
 		backup.add(updateHosts);
 		openFolder.addActionListener(e -> OpenEtc());
 		backup.add(openFolder);
-		flushDNS.addActionListener(e -> exec("ipconfig /flushDNS"));
+		flushDNS.addActionListener(e -> toFlushDNS());
 		backup.add(flushDNS);
 		add(backup, BorderLayout.SOUTH);
 
@@ -129,16 +129,15 @@ class SearchHosts extends JFrame {
 		}
 	}
 
-	private static void exec(String cmd) {
+	private static void toFlushDNS() {
 		textA.setText("");
 		try {
-			Process process = Runtime.getRuntime().exec(cmd);
-			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));//将字符流以缓存的形式一行一行输出
+			Process process = Runtime.getRuntime().exec("ipconfig /toFlushDNS");
+			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
 			String line;
 			while ((line = br.readLine()) != null)
-				if (!StringUtils.isEmpty(line)) {
+				if (!StringUtils.isEmpty(line))
 					appendString(line + "\n");
-				}
 
 			br.close();
 		} catch (IOException e) {
