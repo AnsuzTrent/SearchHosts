@@ -85,6 +85,8 @@ class SearchUtil extends JFrame {
 		if (!System.getProperty("os.name").contains("indows")) {
 			textA.setText("\n目前仅支持Windows 2000/XP 及以上版本");
 			setButtonStatus(false);
+			openFolder.setEnabled(false);
+			flushDNS.setEnabled(false);
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
 	}
