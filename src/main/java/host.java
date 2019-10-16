@@ -134,7 +134,7 @@ class SearchUtil extends JFrame {
 	private static void toFlushDNS() {
 		textA.setText("");
 		try {
-			Process process = Runtime.getRuntime().exec("ipconfig /toFlushDNS");
+			Process process = Runtime.getRuntime().exec("ipconfig /flushDNS");
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
 			String line;
 			while ((line = br.readLine()) != null)
