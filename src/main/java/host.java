@@ -30,7 +30,7 @@ public class host {
 class SearchUtil extends JFrame {
 	private static JTextField hosts = new JTextField();
 	private static JButton search = new JButton("搜索");
-	private static JTextArea textA = new JTextArea("请选择功能");
+	private static JTextArea textA = new JTextArea("请选择功能\n");
 	private static JButton backupHosts = new JButton("备份");
 	private static JButton updateHosts = new JButton("更新");
 	private static JButton openFolder = new JButton("打开hosts 所在文件夹");
@@ -108,7 +108,6 @@ class SearchUtil extends JFrame {
 	}
 
 	private static Boolean Backup() {
-		textA.setText("");
 		try {
 			File backup = new File(editFile + ".bak");
 			if (backup.exists())
@@ -132,14 +131,13 @@ class SearchUtil extends JFrame {
 	}
 
 	private static void toFlushDNS() {
-		textA.setText("");
 		try {
-			Process process = Runtime.getRuntime().exec("ipconfig /toFlushDNS");
+			Process process = Runtime.getRuntime().exec("ipconfig /flushDNS");
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
 			String line;
 			while ((line = br.readLine()) != null)
 				if (!StringUtils.isEmpty(line))
-					appendString(line + "\n");
+					appendString("\n" + line + "\n");
 
 			br.close();
 		} catch (IOException e) {
@@ -228,23 +226,53 @@ class SearchUtil extends JFrame {
 		return Jsoup.parse(page.asXml(), url);
 	}
 
+	private static int FilterRules(String str) {
+		if (str.startsWith("#") || str.equals(""))
+			return 1;
+		else if (str.startsWith("10.") |
+				str.startsWith("0.0.0.0") |
+				str.startsWith("127.") |
+//				str.startsWith("191.255.255.255") |
+				str.startsWith("172.16.") |
+				str.startsWith("172.17.") |
+				str.startsWith("172.18.") |
+				str.startsWith("172.19.") |
+				str.startsWith("172.20.") |
+				str.startsWith("172.21.") |
+				str.startsWith("172.22.") |
+				str.startsWith("172.23.") |
+				str.startsWith("172.24.") |
+				str.startsWith("172.25.") |
+				str.startsWith("172.26.") |
+				str.startsWith("172.27.") |
+				str.startsWith("172.28.") |
+				str.startsWith("172.29.") |
+				str.startsWith("172.30.") |
+				str.startsWith("172.31.") |
+				str.startsWith("169.254.") |
+				str.startsWith("192.168.")
+
+		) {
+			appendString("内网IP:\t" + str + "\n");
+			local.addElement(str + "\n");
+			return 2;
+		} else return 0;
+	}
+
 	private static Vector<String> ReadHosts() {
 		Vector<String> recode = new Vector<>();
 		try {
+			local.clear();
 			FileReader fileReader = new FileReader(hostsPath);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			String s;
 			//逐行读取文件记录
 			while ((s = bufferedReader.readLine()) != null) {
 				//过滤# 开头的注释以及空行
-				if (s.startsWith("#") || s.equals(""))
+				if (FilterRules(s) != 0)
 					continue;
-				if (s.startsWith("127.0.0.1") || s.startsWith("0.0.0.0")) {
-					local.addElement(s + "\n");
-					continue;
-				}
 				//以空格作为分割点
-				String[] fromFile = s.split(" ");
+				String[] fromFile = s.replace("\t", " ").split(" ");
 				//过滤重复
 				if (recode.indexOf(fromFile[1]) == -1)
 					recode.addElement(fromFile[1]);
