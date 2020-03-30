@@ -31,7 +31,7 @@ public class ChinaZ extends BaseParser {
 
 			String host = doc.getElementById("host").attr("value");
 
-			// 包括ip ，回车
+			// 包括IP, "-", 其它奇怪的东西，需要考虑换正则式
 			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text()
 					.split("\\[.*?]");
 
