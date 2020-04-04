@@ -22,7 +22,7 @@ public class ChinaZ extends BaseParser {
 
 
 	@Override
-	public Vector<String> getResult() {
+	Vector<String> getResult() {
 		String url = "http://tool.chinaz.com/dns?type=1&host=" + site + "&ip=";
 		Vector<String> recode = new Vector<>();
 
@@ -32,22 +32,22 @@ public class ChinaZ extends BaseParser {
 			String host = doc.getElementById("host").attr("value");
 
 			// 包括IP, "-", 其它奇怪的东西，需要考虑换正则式
-			String[] IPTmp = doc.getElementsByClass("w60-0 tl").text()
+			String[] ipTmp = doc.getElementsByClass("w60-0 tl").text()
 					.split("\\[.*?]");
 
-			String[] IP = new String[IPTmp.length];
+			String[] ip = new String[ipTmp.length];
 
 			int i = 0, j = 0;
-			while (i < IPTmp.length) {
-				IPTmp[i] = IPTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
-				if ("".equals(IPTmp[i])) {
+			while (i < ipTmp.length) {
+				ipTmp[i] = ipTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
+				if ("".equals(ipTmp[i])) {
 					i++;
 					continue;
 				}
-				IP[j++] = IPTmp[i++];
+				ip[j++] = ipTmp[i++];
 			}
 
-			for (String s : IP) {
+			for (String s : ip) {
 				if (s != null) {
 					if (recode.indexOf("\n" + s + " " + host) == -1 & !"-".equals(s)) {
 						recode.addElement("\n" + s + " " + host);

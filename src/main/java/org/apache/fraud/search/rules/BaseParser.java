@@ -28,7 +28,7 @@ public abstract class BaseParser {
 		this.site = site;
 	}
 
-	protected Document getDocumentFromPage(String url) throws IOException {
+	Document getDocumentFromPage(String url) throws IOException {
 		//不打印日志
 		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
@@ -66,5 +66,11 @@ public abstract class BaseParser {
 	 * @return 完整结果
 	 */
 	abstract Vector<String> getResult();
+
+	public Vector<String> exec() {
+		Vector<String> record = this.getResult();
+		this.site = "";
+		return record;
+	}
 
 }
