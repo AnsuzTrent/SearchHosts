@@ -10,6 +10,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.logging.LogFactory;
+import org.apache.fraud.search.BaseData;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -20,7 +21,7 @@ import java.util.logging.Level;
 /**
  * @author trent
  */
-public abstract class BaseParser {
+public abstract class BaseParser implements BaseData {
 
 	String site;
 

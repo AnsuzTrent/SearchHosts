@@ -17,14 +17,13 @@ public class UserInterface extends JFrame {
 
 	private static JTextField hostsTextField = new JTextField();
 	private static JButton searchButton = new JButton("搜索");
-	private static JTextArea textArea = new JTextArea("请选择功能");
+	private static JTextArea textArea = new JTextArea("请选择功能\n");
 	private static JButton backupButton = new JButton("备份");
 	private static JButton updateButton = new JButton("更新");
 	private static JButton openFolderButton = new JButton("打开hosts 所在文件夹");
 	private static JButton flushButton = new JButton("刷新DNS 配置");
 	private static JScrollBar scrollBar = null;
 
-	private Backstage backstage;
 
 	UserInterface() {
 		setTop();
@@ -49,7 +48,6 @@ public class UserInterface extends JFrame {
 		}
 		//听说其在Win98,win me 中位于/Windows 下？
 
-		backstage = new Backstage();
 	}
 
 	private static void setButtonStatus(boolean flag) {
@@ -58,7 +56,7 @@ public class UserInterface extends JFrame {
 		searchButton.setEnabled(flag);
 	}
 
-	public static void appendString(String str) {
+	public static synchronized void appendString(String str) {
 		textArea.append(str);
 		try {
 			Thread.sleep(10);
@@ -71,12 +69,17 @@ public class UserInterface extends JFrame {
 	public static void initRun() {
 		setButtonStatus(false);
 		textArea.setText("");
-//		backstage.backup();
 	}
 
 	public static void end() {
-		setButtonStatus(true);
-		scrollBar.setValue(scrollBar.getMaximum());
+		try {
+			Thread.sleep(10);
+			scrollBar.setValue(scrollBar.getMaximum());
+			setButtonStatus(true);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void setTop() {
@@ -109,13 +112,13 @@ public class UserInterface extends JFrame {
 		//底栏
 		JPanel backup = new JPanel();
 		backup.setLayout(new GridLayout(1, 4));
-		backupButton.addActionListener(e -> backstage.backup());
+		backupButton.addActionListener(e -> Backstage.backup());
 		backup.add(backupButton);
 		updateButton.addActionListener(e -> new Update().execute());
 		backup.add(updateButton);
-		openFolderButton.addActionListener(e -> backstage.openEtc());
+		openFolderButton.addActionListener(e -> Backstage.openEtc());
 		backup.add(openFolderButton);
-		flushButton.addActionListener(e -> backstage.flushCache());
+		flushButton.addActionListener(e -> Backstage.flushCache());
 		backup.add(flushButton);
 		add(backup, BorderLayout.SOUTH);
 	}

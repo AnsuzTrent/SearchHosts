@@ -60,7 +60,11 @@ public interface BaseData {
 	 * @param method 回调方法
 	 */
 	static void callFunc(Method method) {
-		callFunc(method, "");
+		try {
+			method.invoke(null);
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -71,7 +75,7 @@ public interface BaseData {
 	 */
 	static void callFunc(Method method, String str) {
 		try {
-			method.invoke(null, "".equals(str) ? null : str + "\n");
+			method.invoke(null, "".equals(str) ? null : str);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
@@ -83,15 +87,17 @@ public interface BaseData {
 	 * @param recode 搜索到的结果
 	 */
 	static void appendRecodeToFile(Vector<String> recode) {
-		try {
-			FileWriter fileWriter = new FileWriter(OBTAIN_FILE, true);
-			for (String str : recode) {
-				BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
-				fileWriter.write(str);
+		if (recode != null) {
+			try {
+				FileWriter fileWriter = new FileWriter(OBTAIN_FILE, true);
+				for (String str : recode) {
+					BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
+					fileWriter.write(str);
+				}
+				fileWriter.close();
+			} catch (IOException e) {
+				BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 			}
-			fileWriter.close();
-		} catch (IOException e) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
 		}
 	}
 
@@ -101,7 +107,7 @@ public interface BaseData {
 	 * @param str 显示信息
 	 */
 	static void printToUserInterface(String str) {
-		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
+		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str + "\n");
 	}
 
 

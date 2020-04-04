@@ -20,7 +20,7 @@ import java.nio.file.Files;
  */
 public class Backstage implements BaseData {
 
-	void backup() {
+	public static void backup() {
 		try {
 			File backup = new File(OBTAIN_FILE + ".bak");
 
@@ -28,11 +28,11 @@ public class Backstage implements BaseData {
 			Files.copy(HOSTS_PATH.toPath(), backup.toPath());
 			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath());
 		} catch (IOException e) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 		}
 	}
 
-	void flushCache() {
+	static void flushCache() {
 		try {
 			Process process = Runtime.getRuntime().exec("ipconfig /flushDNS");
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
@@ -45,15 +45,15 @@ public class Backstage implements BaseData {
 
 			br.close();
 		} catch (IOException e) {
-			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 		}
 	}
 
-	void openEtc() {
+	static void openEtc() {
 		try {
 			Desktop.getDesktop().open(new File(ETC_PATH));
 		} catch (IOException e) {
-			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 		}
 	}
 

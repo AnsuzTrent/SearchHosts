@@ -5,6 +5,7 @@
 
 package org.apache.fraud.search.rules;
 
+import org.apache.fraud.search.BaseData;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class ChinaZ extends BaseParser {
 			Collections.sort(recode);
 
 		} catch (IOException e) {
-//			e.printStackTrace();
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 			return null;
 		}
 
@@ -66,7 +67,7 @@ public class ChinaZ extends BaseParser {
 		if (!recode.isEmpty()) {
 			recode.addElement("\n");
 		} else {
-//			appendString("输入的网址没有找到对应ip");
+			BaseData.printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip");
 			return null;
 		}
 

@@ -29,14 +29,19 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 		BaseData.callFunc(INIT_RUN);
 
 		if ("".equals(url)) {
-			publish("请在搜索栏中写入网址\n");
+			try {
+				publish("请在搜索栏中写入网址\n");
+				Files.deleteIfExists(OBTAIN_FILE.toPath());
+			} catch (IOException e) {
+				publish("\nError in [" + e.getMessage() + "]");
+			}
 			return null;
 		}
 		try {
 			Files.deleteIfExists(OBTAIN_FILE.toPath());
 			Files.copy(HOSTS_PATH.toPath(), OBTAIN_FILE.toPath());
 		} catch (IOException e) {
-			publish("Error in [" + e.getMessage() + "]");
+			publish("\nError in [" + e.getMessage() + "]");
 		}
 
 		Vector<String> recode = new ChinaZ(url).exec();
@@ -47,7 +52,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 			try {
 				Files.deleteIfExists(OBTAIN_FILE.toPath());
 			} catch (IOException e) {
-				publish("Error in [" + e.getMessage() + "]");
+				publish("\nError in [" + e.getMessage() + "]");
 			}
 		}
 

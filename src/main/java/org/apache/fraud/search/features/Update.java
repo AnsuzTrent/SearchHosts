@@ -14,6 +14,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,6 +54,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected Void doInBackground() {
 		BaseData.callFunc(INIT_RUN);
+		org.apache.fraud.search.Backstage.backup();
 
 		Vector<String> urlsLocal;
 
@@ -81,11 +83,11 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 						}
 					}
 
-					publish("\n完成");
+					publish("\n完成\n");
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
-					publish("Error in [" + e.getMessage() + "]");
+					publish("\nError in [" + e.getMessage() + "]");
 				}
 			}
 		} else {
@@ -96,7 +98,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	}
 
 	@Override
-	protected void process(java.util.List<String> chunks) {
+	protected void process(List<String> chunks) {
 		for (String s : chunks) {
 			BaseData.printToUserInterface(s);
 		}
@@ -133,14 +135,16 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
 	}
 
 	private int filterRules(String str) {
-		if (str.startsWith("#") || "".equals(str)) {
+		if (str.startsWith("#") |
+				"".equals(str) |
+				str.startsWith("\uFEFF")) {
 			return 1;
 		} else if (str.startsWith("10.") |
 				str.startsWith("0.0.0.0") |
@@ -150,14 +154,23 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				str.startsWith("172.17.") |
 				str.startsWith("172.18.") |
 				str.startsWith("172.19.") |
-				str.startsWith("172.2") |
+				str.startsWith("172.20.") |
+				str.startsWith("172.21.") |
+				str.startsWith("172.22.") |
+				str.startsWith("172.23.") |
+				str.startsWith("172.24.") |
+				str.startsWith("172.25.") |
+				str.startsWith("172.26.") |
+				str.startsWith("172.27.") |
+				str.startsWith("172.28.") |
+				str.startsWith("172.29.") |
 				str.startsWith("172.30.") |
 				str.startsWith("172.31.") |
 				str.startsWith("169.254.") |
 				str.startsWith("192.168.")
 
 		) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "内网IP:\t" + str);
+			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "内网IP:\t" + str + "\n");
 			local.addElement(str + "\n");
 			return 2;
 		} else {
