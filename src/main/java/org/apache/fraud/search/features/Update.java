@@ -14,7 +14,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,41 +52,45 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected Void doInBackground() {
-		BaseData.callFunc(INIT);
+		BaseData.callFunc(INIT_RUN);
 
-		Vector<String> urls = Objects.requireNonNull(readHosts());
-		if (!urls.isEmpty()) {
-			try {
-				FileWriter fileWriter = new FileWriter(OBTAIN_FILE);
-				fileWriter.write(proString());
-				if (local.size() > 0) {
-					for (String s : local) {
-						fileWriter.write(s);
-					}
-				}
-				fileWriter.flush();
-				fileWriter.close();
-				local.clear();
-				//设定线程池
-				ExecutorService pool = Executors.newFixedThreadPool(8);
-				for (String str : urls) {
-					pool.execute(() -> BaseData.appendRecodeToFile(new ChinaZ(str).exec()));
-				}
-				pool.shutdown();
-				while (true) {
-					if (pool.isTerminated()) {
-						break;
-					}
-				}
+		Vector<String> urlsLocal;
 
-				publish("\n完成");
-				//移动，但目前不能获取管理员权限写入C 盘
+		if ((urlsLocal = readHosts()) != null) {
+			if (!urlsLocal.isEmpty()) {
+				try {
+					FileWriter fileWriter = new FileWriter(OBTAIN_FILE);
+					fileWriter.write(proString());
+					if (local.size() > 0) {
+						for (String s : local) {
+							fileWriter.write(s);
+						}
+					}
+					fileWriter.flush();
+					fileWriter.close();
+					local.clear();
+					//设定线程池
+					ExecutorService pool = Executors.newFixedThreadPool(8);
+					for (String str : urlsLocal) {
+						pool.execute(() -> BaseData.appendRecodeToFile(new ChinaZ(str).exec()));
+					}
+					pool.shutdown();
+					while (true) {
+						if (pool.isTerminated()) {
+							break;
+						}
+					}
+
+					publish("\n完成");
+					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
-			} catch (IOException e) {
-				publish("Error in [" + e.getMessage() + "]");
+				} catch (IOException e) {
+					publish("Error in [" + e.getMessage() + "]");
+				}
 			}
+		} else {
+			publish("无记录，hosts 文件中没有需要更新的网址");
 		}
-
 
 		return null;
 	}
@@ -95,7 +98,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected void process(java.util.List<String> chunks) {
 		for (String s : chunks) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, s);
+			BaseData.printToUserInterface(s);
 		}
 	}
 
@@ -130,7 +133,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
@@ -154,7 +157,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				str.startsWith("192.168.")
 
 		) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "内网IP:\t" + str + "\n");
+			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "内网IP:\t" + str);
 			local.addElement(str + "\n");
 			return 2;
 		} else {

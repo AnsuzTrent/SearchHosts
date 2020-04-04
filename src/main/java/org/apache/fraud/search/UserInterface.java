@@ -68,13 +68,13 @@ public class UserInterface extends JFrame {
 		}
 	}
 
-	static void initRun() {
+	public static void initRun() {
 		setButtonStatus(false);
 		textArea.setText("");
 //		backstage.backup();
 	}
 
-	static void end() {
+	public static void end() {
 		setButtonStatus(true);
 		scrollBar.setValue(scrollBar.getMaximum());
 	}

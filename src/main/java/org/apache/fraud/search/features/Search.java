@@ -26,7 +26,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected Void doInBackground() {
-		BaseData.callFunc(INIT);
+		BaseData.callFunc(INIT_RUN);
 
 		if ("".equals(url)) {
 			publish("请在搜索栏中写入网址\n");
@@ -57,7 +57,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected void process(List<String> chunks) {
 		for (String s : chunks) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, s);
+			BaseData.printToUserInterface(s);
 		}
 	}
 

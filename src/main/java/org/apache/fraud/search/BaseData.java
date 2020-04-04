@@ -29,14 +29,14 @@ public interface BaseData {
 
 	Method RETURN_STR_TO_USER_INTERFACE = ThreadLocal.withInitial(() -> {
 		try {
-			return UserInterface.class.getMethod("appendString");
+			return UserInterface.class.getMethod("appendString", String.class);
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}).get();
 
-	Method INIT = ThreadLocal.withInitial(() -> {
+	Method INIT_RUN = ThreadLocal.withInitial(() -> {
 		try {
 			return UserInterface.class.getMethod("initRun");
 		} catch (NoSuchMethodException e) {
@@ -60,7 +60,7 @@ public interface BaseData {
 	 * @param method 回调方法
 	 */
 	static void callFunc(Method method) {
-		callFunc(method, null);
+		callFunc(method, "");
 	}
 
 	/**
@@ -71,7 +71,7 @@ public interface BaseData {
 	 */
 	static void callFunc(Method method, String str) {
 		try {
-			method.invoke(null, str == null ? null : str + "\n");
+			method.invoke(null, "".equals(str) ? null : str + "\n");
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
@@ -93,6 +93,15 @@ public interface BaseData {
 		} catch (IOException e) {
 			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
 		}
+	}
+
+	/**
+	 * 显示到UI
+	 *
+	 * @param str 显示信息
+	 */
+	static void printToUserInterface(String str) {
+		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
 	}
 
 

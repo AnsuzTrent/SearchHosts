@@ -26,7 +26,7 @@ public class Backstage implements BaseData {
 
 			Files.deleteIfExists(backup.toPath());
 			Files.copy(HOSTS_PATH.toPath(), backup.toPath());
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "已备份hosts 文件至 ：  " + backup.toPath());
+			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath());
 		} catch (IOException e) {
 			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
 		}
@@ -39,13 +39,13 @@ public class Backstage implements BaseData {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!StringUtils.isEmpty(line)) {
-					BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "\n" + line + "\n");
+					BaseData.printToUserInterface(line);
 				}
 			}
 
 			br.close();
 		} catch (IOException e) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "Error in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
 		}
 	}
 
@@ -53,7 +53,7 @@ public class Backstage implements BaseData {
 		try {
 			Desktop.getDesktop().open(new File(ETC_PATH));
 		} catch (IOException e) {
-			e.getMessage();
+			BaseData.printToUserInterface("Error in [" + e.getMessage() + "]");
 		}
 	}
 
