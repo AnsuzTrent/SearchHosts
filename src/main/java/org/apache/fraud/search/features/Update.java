@@ -5,7 +5,6 @@
 
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.BaseData;
 import org.apache.fraud.search.rules.ChinaZ;
 
 import javax.swing.*;
@@ -25,6 +24,7 @@ import java.util.concurrent.Executors;
 public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	private static Vector<String> local = new Vector<>();
+	private static Vector<String> noResults = null;
 
 	private static String proString() {
 		return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +
@@ -54,7 +54,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected Void doInBackground() {
 		BaseData.callFunc(INIT_RUN);
-		org.apache.fraud.search.Backstage.backup();
+		Backstage.backup();
 
 		Vector<String> urlsLocal;
 
@@ -63,6 +63,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				try {
 					FileWriter fileWriter = new FileWriter(OBTAIN_FILE);
 					fileWriter.write(proString());
+					// 有内网ip 段
 					if (local.size() > 0) {
 						for (String s : local) {
 							fileWriter.write(s);
@@ -71,10 +72,19 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					fileWriter.flush();
 					fileWriter.close();
 					local.clear();
-					//设定线程池
+
+					//设定线程池，联网查询
 					ExecutorService pool = Executors.newFixedThreadPool(8);
 					for (String str : urlsLocal) {
-						pool.execute(() -> BaseData.appendRecodeToFile(new ChinaZ(str).exec()));
+						pool.execute(() -> {
+							Vector<String> tmp = new ChinaZ(str).exec();
+							if (!"none".equals(tmp.get(0))) {
+								BaseData.appendRecodeToFile(tmp);
+							} else {
+								noResults.addAll(tmp);
+							}
+						});
+
 					}
 					pool.shutdown();
 					while (true) {
@@ -170,7 +180,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				str.startsWith("192.168.")
 
 		) {
-			BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, "内网IP:\t" + str + "\n");
+			BaseData.printToUserInterface("内网IP:\t" + str + "\n");
 			local.addElement(str + "\n");
 			return 2;
 		} else {

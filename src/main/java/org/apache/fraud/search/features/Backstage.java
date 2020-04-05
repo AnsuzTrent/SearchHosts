@@ -3,7 +3,7 @@
  * Copyright (c) 2018- 2020.
  */
 
-package org.apache.fraud.search;
+package org.apache.fraud.search.features;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,7 +32,7 @@ public class Backstage implements BaseData {
 		}
 	}
 
-	static void flushCache() {
+	public static void flushCache() {
 		try {
 			Process process = Runtime.getRuntime().exec("ipconfig /flushDNS");
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("GBK")));
@@ -49,7 +49,7 @@ public class Backstage implements BaseData {
 		}
 	}
 
-	static void openEtc() {
+	public static void openEtc() {
 		try {
 			Desktop.getDesktop().open(new File(ETC_PATH));
 		} catch (IOException e) {

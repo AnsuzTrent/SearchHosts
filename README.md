@@ -7,13 +7,15 @@
 
 
 #### 软件架构
-分为"java"、"kotlin" 两部分，其作用完全一样，是学习kotlin 时诞生的产物
+java 项目
 
 #### 安装教程
 ?
 
 #### 使用说明
-?
+联网查询规则位于"org.apache.fraud.search.rules" 包
+新增规则请继承"org.apache.fraud.search.rules.base.BaseParser" ，并重写"getResult()"方法。
+执行时请使用exec()方法
 
 #### 参与贡献
 

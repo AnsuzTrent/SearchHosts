@@ -4,6 +4,7 @@
  */
 package org.apache.fraud.search;
 
+import org.apache.fraud.search.features.Backstage;
 import org.apache.fraud.search.features.Search;
 import org.apache.fraud.search.features.Update;
 

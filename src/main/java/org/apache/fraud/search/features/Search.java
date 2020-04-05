@@ -5,7 +5,6 @@
 
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.BaseData;
 import org.apache.fraud.search.rules.ChinaZ;
 
 import javax.swing.*;

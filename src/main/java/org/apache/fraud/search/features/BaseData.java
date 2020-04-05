@@ -3,7 +3,9 @@
  * Copyright (c) 2018- 2020.
  */
 
-package org.apache.fraud.search;
+package org.apache.fraud.search.features;
+
+import org.apache.fraud.search.UserInterface;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
@@ -91,12 +93,12 @@ public interface BaseData {
 			try {
 				FileWriter fileWriter = new FileWriter(OBTAIN_FILE, true);
 				for (String str : recode) {
-					BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
+					printToUserInterface(str);
 					fileWriter.write(str);
 				}
 				fileWriter.close();
 			} catch (IOException e) {
-				BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
+				printToUserInterface("\nError in [" + e.getMessage() + "]");
 			}
 		}
 	}

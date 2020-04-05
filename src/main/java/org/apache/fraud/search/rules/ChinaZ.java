@@ -5,7 +5,7 @@
 
 package org.apache.fraud.search.rules;
 
-import org.apache.fraud.search.BaseData;
+import org.apache.fraud.search.rules.base.BaseParser;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
@@ -21,11 +21,12 @@ public class ChinaZ extends BaseParser {
 		super(site);
 	}
 
-
 	@Override
-	Vector<String> getResult() {
+	protected Vector<String> getResult() {
 		String url = "http://tool.chinaz.com/dns?type=1&host=" + site + "&ip=";
 		Vector<String> recode = new Vector<>();
+		Vector<String> noResult = new Vector<>();
+		noResult.add("none\n");
 
 		try {
 			Document doc = getDocumentFromPage(url);
@@ -59,16 +60,19 @@ public class ChinaZ extends BaseParser {
 			Collections.sort(recode);
 
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
-			return null;
+			// 可能联网超时
+			printToUserInterface("\nError in [" + e.getMessage() + "]\n Of the \"" + site + "\"");
+			noResult.add(site);
+			return noResult;
 		}
 
 		// 取得结果是否为空
 		if (!recode.isEmpty()) {
 			recode.addElement("\n");
 		} else {
-			BaseData.printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip");
-			return null;
+			printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip");
+			noResult.add(site);
+			return noResult;
 		}
 
 		return recode;

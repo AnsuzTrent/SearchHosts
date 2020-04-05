@@ -6,14 +6,16 @@ It's easier to change the hosts file to visit a website like "[Github.com](https
 Thanks to the ([tool.chinaz.com/dns](https://tool.chinaz.com/dns)) provided search interface support —— although they don't know that I used their website in this app.
 
 
-#### Software Architecture
-Divided into two parts, "Java" and "kotlin", the function is exactly the same, is the product of learning kotlin
+#### Software Architecture 
+A java program
 
 #### Installation
 ?
 
-#### Instructions
-?
+#### Instructions 
+For use The networking query rules are located in the "org.apache.fraud.search.rules" package. 
+For new rules, please extend "org.apache.fraud.search.rules.base.BaseParser" and override method "getResult()". 
+Please use the exec () method when executing
 
 #### Contribution
 
