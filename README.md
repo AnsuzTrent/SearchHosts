@@ -14,7 +14,7 @@ java 项目
 
 #### 使用说明
 联网查询规则位于"org.apache.fraud.search.rules" 包
-新增规则请继承"org.apache.fraud.search.rules.base.BaseParser" ，并重写"getResult()"方法。
+新增规则请继承"org.apache.fraud.search.base.BaseParser" ，并重写"getResult()"方法。
 执行时请使用exec()方法
 
 #### 参与贡献

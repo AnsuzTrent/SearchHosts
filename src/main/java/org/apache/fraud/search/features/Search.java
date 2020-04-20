@@ -5,7 +5,8 @@
 
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.rules.ChinaZ;
+import org.apache.fraud.search.base.BaseData;
+import org.apache.fraud.search.rules.ChinaZP;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 			publish("\nError in [" + e.getMessage() + "]");
 		}
 
-		Vector<String> recode = new ChinaZ(url).exec();
+		Vector<String> recode = new ChinaZP(url).exec();
 		if (!recode.isEmpty()) {
 			BaseData.appendRecodeToFile(recode);
 			publish("\n 完成");

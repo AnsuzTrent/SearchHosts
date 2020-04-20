@@ -5,7 +5,9 @@
 
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.rules.ChinaZ;
+import org.apache.fraud.search.UserInterface;
+import org.apache.fraud.search.base.BaseData;
+import org.apache.fraud.search.rules.ChinaZP;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -23,8 +25,8 @@ import java.util.concurrent.Executors;
  */
 public class Update extends SwingWorker<Void, String> implements BaseData {
 
-	private static Vector<String> local = new Vector<>();
-	private static Vector<String> noResults = null;
+	private static final Vector<String> local = new Vector<>();
+	private static Vector<String> noResults = new Vector<>();
 
 	private static String proString() {
 		return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +
@@ -54,7 +56,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected Void doInBackground() {
 		BaseData.callFunc(INIT_RUN);
-		Backstage.backup();
+		Common.backup();
 
 		Vector<String> urlsLocal;
 
@@ -73,27 +75,12 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					fileWriter.close();
 					local.clear();
 
-					//设定线程池，联网查询
-					ExecutorService pool = Executors.newFixedThreadPool(8);
-					for (String str : urlsLocal) {
-						pool.execute(() -> {
-							Vector<String> tmp = new ChinaZ(str).exec();
-							if (!"none".equals(tmp.get(0))) {
-								BaseData.appendRecodeToFile(tmp);
-							} else {
-								noResults.addAll(tmp);
-							}
-						});
+					searchByWeb(urlsLocal);
 
+					if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
+						// 二度搜索
+						searchByWeb(noResults);
 					}
-					pool.shutdown();
-					while (true) {
-						if (pool.isTerminated()) {
-							break;
-						}
-					}
-
-					publish("\n完成\n");
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
@@ -101,7 +88,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				}
 			}
 		} else {
-			publish("无记录，hosts 文件中没有需要更新的网址");
+			publish("\n无记录，hosts 文件中没有需要更新的网址");
 		}
 
 		return null;
@@ -117,6 +104,33 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected void done() {
 		BaseData.callFunc(END);
+	}
+
+	private void searchByWeb(Vector<String> urls) {
+		publish("\n");
+		Vector<String> noRequest = new Vector<>();
+		//设定线程池，联网查询
+		ExecutorService pool = Executors.newFixedThreadPool(8);
+		for (String url : urls) {
+			pool.execute(() -> {
+				Vector<String> tmp = new ChinaZP(url).exec();
+				if (!"none".equals(tmp.get(0))) {
+					BaseData.appendRecodeToFile(tmp);
+				} else {
+					noRequest.add(tmp.get(0));
+				}
+			});
+		}
+		pool.shutdown();
+		while (true) {
+			if (pool.isTerminated()) {
+				break;
+			}
+		}
+
+		publish("\n完成(" + (urls.size() - noRequest.size()) + "/" + urls.size() + ")\n");
+
+		noResults = noRequest;
 	}
 
 	private Vector<String> readHosts() {
@@ -135,7 +149,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				//以空格作为分割点
 				String[] fromFile = s.replace("\t", " ").split(" ");
 				//过滤重复
-				if (recode.indexOf(fromFile[1]) == -1) {
+				if (!recode.contains(fromFile[1])) {
 					recode.addElement(fromFile[1]);
 				}
 			}
@@ -145,7 +159,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
+			publish("\nError in [" + e.getMessage() + "]");
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
@@ -156,10 +170,10 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				"".equals(str) |
 				str.startsWith("\uFEFF")) {
 			return 1;
-		} else if (str.startsWith("10.") |
-				str.startsWith("0.0.0.0") |
+		} else if (str.startsWith("0.0.0.0") |
+				str.startsWith("10.") |
 				str.startsWith("127.") |
-//				str.startsWith("191.255.255.255") |
+				str.startsWith("169.254.") |
 				str.startsWith("172.16.") |
 				str.startsWith("172.17.") |
 				str.startsWith("172.18.") |
@@ -176,11 +190,11 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				str.startsWith("172.29.") |
 				str.startsWith("172.30.") |
 				str.startsWith("172.31.") |
-				str.startsWith("169.254.") |
+				str.startsWith("191.255.255.255") |
 				str.startsWith("192.168.")
 
 		) {
-			BaseData.printToUserInterface("内网IP:\t" + str + "\n");
+			publish("\n内网IP:\t" + str);
 			local.addElement(str + "\n");
 			return 2;
 		} else {

@@ -14,7 +14,7 @@ A java program
 
 #### Instructions 
 For use The networking query rules are located in the "org.apache.fraud.search.rules" package. 
-For new rules, please extend "org.apache.fraud.search.rules.base.BaseParser" and override method "getResult()". 
+For new rules, please extend "org.apache.fraud.search.base.BaseParser" and override method "getResult()". 
 Please use the exec () method when executing
 
 #### Contribution

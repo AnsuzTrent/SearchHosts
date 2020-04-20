@@ -6,6 +6,7 @@
 package org.apache.fraud.search.features;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fraud.search.base.BaseData;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -18,7 +19,7 @@ import java.nio.file.Files;
 /**
  * @author trent
  */
-public class Backstage implements BaseData {
+public class Common implements BaseData {
 
 	public static void backup() {
 		try {
@@ -26,9 +27,9 @@ public class Backstage implements BaseData {
 
 			Files.deleteIfExists(backup.toPath());
 			Files.copy(HOSTS_PATH.toPath(), backup.toPath());
-			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath());
+			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath() + "\n");
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
 		}
 	}
 
@@ -39,13 +40,13 @@ public class Backstage implements BaseData {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!StringUtils.isEmpty(line)) {
-					BaseData.printToUserInterface(line);
+					BaseData.printToUserInterface(line + "\n");
 				}
 			}
 
 			br.close();
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
 		}
 	}
 
@@ -53,7 +54,7 @@ public class Backstage implements BaseData {
 		try {
 			Desktop.getDesktop().open(new File(ETC_PATH));
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]");
+			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
 		}
 	}
 

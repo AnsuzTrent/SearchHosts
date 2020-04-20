@@ -14,7 +14,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<htmlunit.version>2.38.0</htmlunit.version>
+		<htmlunit.version>2.39.0</htmlunit.version>
 		<jsoup.version>1.13.1</jsoup.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -32,6 +32,12 @@
 			<groupId>net.sourceforge.htmlunit</groupId>
 			<artifactId>htmlunit</artifactId>
 			<version>${htmlunit.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

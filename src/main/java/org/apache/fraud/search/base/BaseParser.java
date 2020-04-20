@@ -3,14 +3,14 @@
  * Copyright (c) 2018- 2020.
  */
 
-package org.apache.fraud.search.rules.base;
+package org.apache.fraud.search.base;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fraud.search.features.BaseData;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -24,6 +24,7 @@ import java.util.logging.Level;
 public abstract class BaseParser implements BaseData {
 
 	protected String site;
+	protected String name;
 
 	protected BaseParser(String site) {
 		this.site = site;
@@ -39,25 +40,31 @@ public abstract class BaseParser implements BaseData {
 //		System.setProperty("http.proxyHost", "127.0.0.1");
 //		System.setProperty("http.proxyPort", "8090");
 
-		//模拟Chrome
+		//模拟
 		WebClient webClient = new WebClient(BrowserVersion.CHROME);
 		WebClientOptions webClientOptions = webClient.getOptions();
 
+		webClientOptions.setUseInsecureSSL(true);
 		//禁用CSS
 		webClientOptions.setCssEnabled(false);
+		webClientOptions.setThrowExceptionOnFailingStatusCode(false);
 		//启用JS 解释器
 		webClientOptions.setJavaScriptEnabled(true);
 		//JS 错误时不抛出异常
 		webClientOptions.setThrowExceptionOnScriptError(false);
-		webClientOptions.setThrowExceptionOnFailingStatusCode(false);
+		webClientOptions.setDoNotTrackEnabled(true);
 		//连接超时时间
-		webClientOptions.setTimeout(2 * 1000);
-		//等待后台运行
-		webClient.waitForBackgroundJavaScript(10 * 1000);
+		webClientOptions.setTimeout(5 * 1000);
 
 		HtmlPage page = webClient.getPage(url);
 
-		return Jsoup.parse(page.asXml(), url);
+		//支持ajax
+		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+		//等待后台运行
+		webClient.waitForBackgroundJavaScript(10 * 10000);
+		webClient.setJavaScriptTimeout(5 * 1000);
+
+		return Jsoup.parse(page.asXml());
 	}
 
 	protected void printToUserInterface(String str) {

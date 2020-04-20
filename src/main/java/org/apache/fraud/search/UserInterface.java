@@ -4,7 +4,7 @@
  */
 package org.apache.fraud.search;
 
-import org.apache.fraud.search.features.Backstage;
+import org.apache.fraud.search.features.Common;
 import org.apache.fraud.search.features.Search;
 import org.apache.fraud.search.features.Update;
 
@@ -16,15 +16,15 @@ import java.awt.*;
  */
 public class UserInterface extends JFrame {
 
-	private static JTextField hostsTextField = new JTextField();
-	private static JButton searchButton = new JButton("搜索");
-	private static JTextArea textArea = new JTextArea("请选择功能\n");
-	private static JButton backupButton = new JButton("备份");
-	private static JButton updateButton = new JButton("更新");
-	private static JButton openFolderButton = new JButton("打开hosts 所在文件夹");
-	private static JButton flushButton = new JButton("刷新DNS 配置");
+	private static final JTextField hostsTextField = new JTextField();
+	private static final JButton searchButton = new JButton("搜索");
+	private static final JTextArea textArea = new JTextArea("请选择功能\n");
+	private static final JButton backupButton = new JButton("备份");
+	private static final JButton updateButton = new JButton("更新");
+	private static final JButton openFolderButton = new JButton("打开hosts 所在文件夹");
+	private static final JButton flushButton = new JButton("刷新DNS 配置");
 	private static JScrollBar scrollBar = null;
-
+	public static JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
 
 	UserInterface() {
 		setTop();
@@ -43,7 +43,7 @@ public class UserInterface extends JFrame {
 
 		if (!System.getProperty("os.name").contains("indows")) {
 			textArea.setText("目前仅支持Windows 2000/XP 及以上版本");
-			setButtonStatus(false);
+			setButtonStatusRunning(false);
 			openFolderButton.setEnabled(false);
 			flushButton.setEnabled(false);
 		}
@@ -51,10 +51,11 @@ public class UserInterface extends JFrame {
 
 	}
 
-	private static void setButtonStatus(boolean flag) {
+	private static void setButtonStatusRunning(boolean flag) {
 		backupButton.setEnabled(flag);
 		updateButton.setEnabled(flag);
 		searchButton.setEnabled(flag);
+		enableTwice.setEnabled(flag);
 	}
 
 	public static synchronized void appendString(String str) {
@@ -68,28 +69,28 @@ public class UserInterface extends JFrame {
 	}
 
 	public static void initRun() {
-		setButtonStatus(false);
+		setButtonStatusRunning(false);
 		textArea.setText("");
 	}
 
 	public static void end() {
 		try {
 			Thread.sleep(10);
-			scrollBar.setValue(scrollBar.getMaximum());
-			setButtonStatus(true);
+			setButtonStatusRunning(true);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		scrollBar.setValue(scrollBar.getMaximum());
 	}
 
 	private void setTop() {
 		//顶栏
 		JPanel append = new JPanel();
-		append.setLayout(new GridLayout(1, 2));
+		append.setLayout(new GridLayout(1, 3));
 		append.add(hostsTextField);
 		searchButton.addActionListener(e -> new Search(hostsTextField.getText()).execute());
 		append.add(searchButton);
+//		append.add(enableTwice);
 		add(append, BorderLayout.NORTH);
 
 	}
@@ -113,13 +114,13 @@ public class UserInterface extends JFrame {
 		//底栏
 		JPanel backup = new JPanel();
 		backup.setLayout(new GridLayout(1, 4));
-		backupButton.addActionListener(e -> Backstage.backup());
+		backupButton.addActionListener(e -> Common.backup());
 		backup.add(backupButton);
 		updateButton.addActionListener(e -> new Update().execute());
 		backup.add(updateButton);
-		openFolderButton.addActionListener(e -> Backstage.openEtc());
+		openFolderButton.addActionListener(e -> Common.openEtc());
 		backup.add(openFolderButton);
-		flushButton.addActionListener(e -> Backstage.flushCache());
+		flushButton.addActionListener(e -> Common.flushCache());
 		backup.add(flushButton);
 		add(backup, BorderLayout.SOUTH);
 	}

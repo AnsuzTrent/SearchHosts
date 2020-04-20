@@ -3,7 +3,7 @@
  * Copyright (c) 2018- 2020.
  */
 
-package org.apache.fraud.search.features;
+package org.apache.fraud.search.base;
 
 import org.apache.fraud.search.UserInterface;
 
@@ -109,7 +109,7 @@ public interface BaseData {
 	 * @param str 显示信息
 	 */
 	static void printToUserInterface(String str) {
-		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str + "\n");
+		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
 	}
 
 
