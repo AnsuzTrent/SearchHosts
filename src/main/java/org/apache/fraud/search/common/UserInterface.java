@@ -2,7 +2,7 @@
  * Trent Inc.
  * Copyright (c) 2018- 2020.
  */
-package org.apache.fraud.search;
+package org.apache.fraud.search.common;
 
 import org.apache.fraud.search.features.Common;
 import org.apache.fraud.search.features.Search;
@@ -26,7 +26,7 @@ public class UserInterface extends JFrame {
 	private static JScrollBar scrollBar = null;
 	public static JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
 
-	UserInterface() {
+	public UserInterface() {
 		setTop();
 		setMiddle();
 		setBottle();

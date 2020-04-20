@@ -6,13 +6,12 @@
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
-import org.apache.fraud.search.rules.ChinaZP;
+import org.apache.fraud.search.rules.RulesChain;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * @author trent
@@ -44,17 +43,8 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 			publish("\nError in [" + e.getMessage() + "]");
 		}
 
-		Vector<String> recode = new ChinaZP(url).exec();
-		if (!recode.isEmpty()) {
-			BaseData.appendRecodeToFile(recode);
-			publish("\n 完成");
-		} else {
-			try {
-				Files.deleteIfExists(OBTAIN_FILE.toPath());
-			} catch (IOException e) {
-				publish("\nError in [" + e.getMessage() + "]");
-			}
-		}
+		//获取结果
+		new RulesChain().exec(url);
 
 		return null;
 	}

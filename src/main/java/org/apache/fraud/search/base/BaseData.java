@@ -5,7 +5,7 @@
 
 package org.apache.fraud.search.base;
 
-import org.apache.fraud.search.UserInterface;
+import org.apache.fraud.search.common.UserInterface;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;

@@ -84,4 +84,8 @@ public abstract class BaseParser implements BaseData {
 		return record;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 }
