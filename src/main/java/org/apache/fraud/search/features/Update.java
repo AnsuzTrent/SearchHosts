@@ -117,7 +117,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				if (!"none".equals(tmp.get(0))) {
 					BaseData.appendRecodeToFile(tmp);
 				} else {
-					noRequest.add(tmp.get(0));
+					noRequest.add(tmp.get(1));
 				}
 			});
 		}

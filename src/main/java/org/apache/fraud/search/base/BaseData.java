@@ -98,7 +98,7 @@ public interface BaseData {
 				}
 				fileWriter.close();
 			} catch (IOException e) {
-				printToUserInterface("\nError in [" + e.getMessage() + "]");
+				printToUserInterface("\nError in [" + e.getMessage() + "]\n");
 			}
 		}
 	}

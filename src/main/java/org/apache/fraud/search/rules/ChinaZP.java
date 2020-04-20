@@ -8,7 +8,6 @@ package org.apache.fraud.search.rules;
 import org.apache.fraud.search.base.BaseParser;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -60,10 +59,10 @@ public class ChinaZP extends BaseParser {
 
 			Collections.sort(recode);
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// 可能联网超时
-			printToUserInterface("\nError in [" + e.getMessage() + "]\nOf the \"" + site + "\"");
-			noResult.set(0, site);
+			printToUserInterface("\nError in [" + e.getMessage() + "]\nOf the \"" + site + "\"\n");
+			noResult.add(site);
 			return noResult;
 		}
 
@@ -71,8 +70,8 @@ public class ChinaZP extends BaseParser {
 		if (!recode.isEmpty()) {
 			recode.addElement("\n");
 		} else {
-			printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip");
-			noResult.set(0, site);
+			printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip\n");
+			noResult.add(site);
 			return noResult;
 		}
 
