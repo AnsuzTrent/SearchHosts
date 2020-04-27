@@ -5,9 +5,8 @@
 
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.UserInterface;
 import org.apache.fraud.search.base.BaseData;
-import org.apache.fraud.search.rules.ChinaZP;
+import org.apache.fraud.search.rules.RulesChain;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -17,8 +16,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author trent
@@ -26,7 +23,6 @@ import java.util.concurrent.Executors;
 public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	private static final Vector<String> local = new Vector<>();
-	private static Vector<String> noResults = new Vector<>();
 
 	private static String proString() {
 		return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +
@@ -75,12 +71,8 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					fileWriter.close();
 					local.clear();
 
-					searchByWeb(urlsLocal);
+					new RulesChain().exec(urlsLocal);
 
-					if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
-						// 二度搜索
-						searchByWeb(noResults);
-					}
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
@@ -104,33 +96,6 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected void done() {
 		BaseData.callFunc(END);
-	}
-
-	private void searchByWeb(Vector<String> urls) {
-		publish("\n");
-		Vector<String> noRequest = new Vector<>();
-		//设定线程池，联网查询
-		ExecutorService pool = Executors.newFixedThreadPool(8);
-		for (String url : urls) {
-			pool.execute(() -> {
-				Vector<String> tmp = new ChinaZP(url).exec();
-				if (!"none".equals(tmp.get(0))) {
-					BaseData.appendRecodeToFile(tmp);
-				} else {
-					noRequest.add(tmp.get(0));
-				}
-			});
-		}
-		pool.shutdown();
-		while (true) {
-			if (pool.isTerminated()) {
-				break;
-			}
-		}
-
-		publish("\n完成(" + (urls.size() - noRequest.size()) + "/" + urls.size() + ")\n");
-
-		noResults = noRequest;
 	}
 
 	private Vector<String> readHosts() {
@@ -194,7 +159,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 				str.startsWith("192.168.")
 
 		) {
-			publish("\n内网IP:\t" + str);
+			publish("内网IP:\t" + str + "\n");
 			local.addElement(str + "\n");
 			return 2;
 		} else {

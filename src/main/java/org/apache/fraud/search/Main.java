@@ -1,5 +1,7 @@
 package org.apache.fraud.search;
 
+import org.apache.fraud.search.common.UserInterface;
+
 import java.awt.*;
 
 /**
