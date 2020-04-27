@@ -15,6 +15,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -26,7 +27,7 @@ public abstract class BaseParser implements BaseData {
 	protected String site;
 	protected String name;
 
-	protected BaseParser(String site) {
+	public BaseParser(String site) {
 		this.site = site;
 	}
 
@@ -71,6 +72,34 @@ public abstract class BaseParser implements BaseData {
 		BaseData.printToUserInterface(str);
 	}
 
+	protected Vector<String> makeRecode(String[] ipTmp, String host) {
+		Vector<String> recode = new Vector<>();
+
+		String[] ip = new String[ipTmp.length];
+
+		int i = 0, j = 0;
+		while (i < ipTmp.length) {
+			ipTmp[i] = ipTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
+			if ("".equals(ipTmp[i])) {
+				i++;
+				continue;
+			}
+			ip[j++] = ipTmp[i++];
+		}
+
+		for (String s : ip) {
+			if (s != null) {
+				if (!recode.contains("\n" + s + " " + host) & !"-".equals(s)) {
+					recode.addElement("\n" + s + " " + host);
+				}
+			}
+		}
+
+		Collections.sort(recode);
+
+		return recode;
+	}
+
 	/**
 	 * 获取结果
 	 *
@@ -84,8 +113,8 @@ public abstract class BaseParser implements BaseData {
 		return record;
 	}
 
-	public String getName() {
-		return this.name;
+	public void printName(int flag) {
+		printToUserInterface("正在使用[" + this.name + "] 进行第 " + flag + " 次查询\n");
 	}
 
 }
