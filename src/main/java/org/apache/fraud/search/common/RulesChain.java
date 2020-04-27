@@ -3,21 +3,22 @@
  * Copyright (c) 2018- 2020.
  */
 
-package org.apache.fraud.search.rules;
+package org.apache.fraud.search.common;
 
 import org.apache.fraud.search.base.BaseData;
 import org.apache.fraud.search.base.BaseParser;
-import org.apache.fraud.search.common.ClassUtil;
-import org.apache.fraud.search.common.UserInterface;
+import org.apache.fraud.search.rules.ChinaZM;
+import org.apache.fraud.search.rules.ChinaZP;
+import org.apache.fraud.search.rules.IP138;
 
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RulesChain implements BaseData {
-	private final static int maxFlag = (ClassUtil.getClasses("org.apache.fraud.search.rules").size() - 1);
+	private final static int maxFlag = ClassUtil.getClasses("org.apache.fraud.search.rules").size();
 	private static int flag = 0;
-	private static Vector<String> noResults = null;
+	private static final Vector<String> noResults = new Vector<>();
 
 	private static Vector<String> getVector(String url) {
 		Vector<String> recode = null;
@@ -25,11 +26,19 @@ public class RulesChain implements BaseData {
 		switch (flag) {
 			case 0:
 				parser = new ChinaZP(url);
-//				printParserName(parser.getName());
+//				parser.printName(flag);
 				recode = parser.exec();
 				break;
 			case 1:
-				recode = new ChinaZP(url).exec();
+				parser = new ChinaZM(url);
+//				parser.printName(flag);
+				recode = parser.exec();
+				break;
+
+			case 2:
+				parser = new IP138(url);
+//				parser.printName(flag);
+				recode = parser.exec();
 				break;
 			default:
 				break;
@@ -39,12 +48,11 @@ public class RulesChain implements BaseData {
 	}
 
 	private static void moreTimes() {
-		if (flag < maxFlag) {
-			flag++;
-		}
-
 		if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
 			printToUserInterface("等待下一次搜索");
+			if (flag < maxFlag) {
+				flag++;
+			}
 			for (String url : noResults)
 				getVector(url);
 		}
@@ -54,14 +62,13 @@ public class RulesChain implements BaseData {
 		BaseData.printToUserInterface(str);
 	}
 
-	private static void printParserName(String str) {
-		printToUserInterface("正在使用[" + str + "] 进行第 " + flag + " 次查询\n");
-	}
-
 	public void exec(String url) {
-		Vector<String> recode;
+		String[] tmp = url.split("/");
 
-		recode = getVector(url);
+		String uri = (url.startsWith("http:") | url.startsWith("https:")) ?
+				tmp[2] : tmp[0];
+
+		Vector<String> recode = getVector(uri);
 
 		if (!"none".equals(recode.get(0))) {
 			BaseData.appendRecodeToFile(recode);
@@ -76,7 +83,7 @@ public class RulesChain implements BaseData {
 
 	public void exec(Vector<String> urls) {
 		printToUserInterface("\n\n");
-		Vector<String> noRequest = new Vector<>();
+
 		//设定线程池，联网查询
 		ExecutorService pool = Executors.newFixedThreadPool(8);
 		for (String url : urls) {
@@ -85,7 +92,7 @@ public class RulesChain implements BaseData {
 				if (!"none".equals(tmp.get(0))) {
 					BaseData.appendRecodeToFile(tmp);
 				} else {
-					noRequest.add(tmp.get(1));
+					noResults.add(tmp.get(1));
 				}
 			});
 		}
@@ -96,9 +103,7 @@ public class RulesChain implements BaseData {
 			}
 		}
 
-		printToUserInterface("\n完成(" + (urls.size() - noRequest.size()) + "/" + urls.size() + ")\n");
-
-		noResults = noRequest;
+		printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
 
 		moreTimes();
 

@@ -6,7 +6,7 @@
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
-import org.apache.fraud.search.rules.RulesChain;
+import org.apache.fraud.search.common.RulesChain;
 
 import javax.swing.*;
 import java.io.IOException;
