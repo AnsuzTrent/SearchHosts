@@ -24,18 +24,19 @@ public class RulesChain implements BaseData {
 
 	private static Vector<String> getVector(String url) {
 		BaseParser parser;
+		Vector<String> recode = null;
 
 		try {
 			Constructor<?> constructor = clsList.get(flag).getConstructor(String.class);
 			parser = (BaseParser) constructor.newInstance(url);
 
 			parser.printName(flag);
-			return parser.exec();
+			recode = parser.exec();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return null;
+		return recode;
 	}
 
 	private static void moreTimes() {
