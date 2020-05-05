@@ -76,7 +76,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
-					publish("\nError in [" + e.getMessage() + "]");
+					BaseData.printException(e);
 				}
 			}
 		} else {
@@ -124,7 +124,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			publish("\nError in [" + e.getMessage() + "]");
+			BaseData.printException(e);
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;

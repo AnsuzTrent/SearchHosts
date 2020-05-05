@@ -72,6 +72,14 @@ public abstract class BaseParser implements BaseData {
 		BaseData.printToUserInterface(str);
 	}
 
+	protected static void printException(Exception e) {
+		BaseData.printException(e);
+	}
+
+	protected static void printException(Exception e, String s) {
+		BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n Of the \"" + s + "\"");
+	}
+
 	protected Vector<String> makeRecode(String[] ipTmp, String host) {
 		Vector<String> recode = new Vector<>();
 

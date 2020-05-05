@@ -30,10 +30,10 @@ public class RulesChain implements BaseData {
 			Constructor<?> constructor = clsList.get(flag).getConstructor(String.class);
 			parser = (BaseParser) constructor.newInstance(url);
 
-			parser.printName(flag);
+//			parser.printName(flag);
 			recode = parser.exec();
 		} catch (Exception e) {
-			e.printStackTrace();
+			printException(e);
 		}
 
 		return recode;
@@ -56,6 +56,10 @@ public class RulesChain implements BaseData {
 
 	private static void printToUserInterface(String str) {
 		BaseData.printToUserInterface(str);
+	}
+
+	private static void printException(Exception e) {
+		BaseData.printException(e);
 	}
 
 	public void exec(String url) {

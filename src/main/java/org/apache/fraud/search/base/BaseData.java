@@ -5,13 +5,13 @@
 
 package org.apache.fraud.search.base;
 
+import org.apache.fraud.search.common.InfoPipe;
 import org.apache.fraud.search.common.UserInterface;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Vector;
 
@@ -33,7 +33,7 @@ public interface BaseData {
 		try {
 			return UserInterface.class.getMethod("appendString", String.class);
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			printException(e);
 		}
 		return null;
 	}).get();
@@ -42,7 +42,7 @@ public interface BaseData {
 		try {
 			return UserInterface.class.getMethod("initRun");
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			printException(e);
 		}
 		return null;
 	}).get();
@@ -51,7 +51,7 @@ public interface BaseData {
 		try {
 			return UserInterface.class.getMethod("end");
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			printException(e);
 		}
 		return null;
 	}).get();
@@ -64,8 +64,8 @@ public interface BaseData {
 	static void callFunc(Method method) {
 		try {
 			method.invoke(null);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			printException(e);
 		}
 	}
 
@@ -78,8 +78,8 @@ public interface BaseData {
 	static void callFunc(Method method, String str) {
 		try {
 			method.invoke(null, "".equals(str) ? null : str);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			printException(e);
 		}
 	}
 
@@ -98,7 +98,7 @@ public interface BaseData {
 				}
 				fileWriter.close();
 			} catch (IOException e) {
-				printToUserInterface("\nError in [" + e.getMessage() + "]\n");
+				printException(e);
 			}
 		}
 	}
@@ -109,8 +109,12 @@ public interface BaseData {
 	 * @param str 显示信息
 	 */
 	static void printToUserInterface(String str) {
-		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
+//		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
+		InfoPipe.getInstance().addInfo(str);
 	}
 
+	static void printException(Exception e) {
+		printToUserInterface("\nError in [" + e.getMessage() + "]\n");
+	}
 
 }
