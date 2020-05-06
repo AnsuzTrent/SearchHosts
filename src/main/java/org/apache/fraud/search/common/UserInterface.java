@@ -88,7 +88,7 @@ public class UserInterface extends JFrame {
 			Thread.sleep(10);
 			setButtonStatusRunning(true);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			printException(e);
 		}
 		scrollBar.setValue(scrollBar.getMaximum());
 	}
