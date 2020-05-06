@@ -10,6 +10,8 @@ import org.apache.fraud.search.features.Update;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * @author trent
@@ -41,6 +43,14 @@ public class UserInterface extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
 
+		InfoPipe pipe = InfoPipe.getInstance();
+
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				pipe.close();
+			}
+		});
+
 		if (!System.getProperty("os.name").contains("indows")) {
 			textArea.setText("目前仅支持Windows 2000/XP 及以上版本");
 			setButtonStatusRunning(false);
@@ -64,7 +74,7 @@ public class UserInterface extends JFrame {
 			Thread.sleep(10);
 			scrollBar.setValue(scrollBar.getMaximum());
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			printException(e);
 		}
 	}
 
@@ -125,4 +135,7 @@ public class UserInterface extends JFrame {
 		add(backup, BorderLayout.SOUTH);
 	}
 
+	private static void printException(Exception e) {
+		appendString("\nError in [" + e.getMessage() + "]\n");
+	}
 }

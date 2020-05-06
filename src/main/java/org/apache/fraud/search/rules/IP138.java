@@ -34,7 +34,7 @@ public class IP138 extends BaseParser {
 			recode = makeRecode(ipTmp, site);
 
 		} catch (Exception e) {
-			printToUserInterface("\nError in [" + e.getMessage() + "]\n Of the \"" + site + "\"");
+			printException(e, site);
 			noResult.add(site);
 			return noResult;
 		}
@@ -43,7 +43,7 @@ public class IP138 extends BaseParser {
 		if (recode != null && !recode.isEmpty()) {
 			recode.addElement("\n");
 		} else {
-			printToUserInterface("输入的网址:" + site + " 没有找到对应ip");
+			printToUserInterface("\n输入的网址:" + site + " 没有找到对应ip\n");
 			noResult.add(site);
 			return noResult;
 		}

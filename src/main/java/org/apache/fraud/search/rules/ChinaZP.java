@@ -38,7 +38,7 @@ public class ChinaZP extends BaseParser {
 
 		} catch (Exception e) {
 			// 可能联网超时
-			printToUserInterface("\nError in [" + e.getMessage() + "]\nOf the \"" + site + "\"\n");
+			printException(e, site);
 			noResult.add(site);
 			return noResult;
 		}

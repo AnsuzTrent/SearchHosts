@@ -7,41 +7,33 @@ package org.apache.fraud.search.common;
 
 import org.apache.fraud.search.base.BaseData;
 import org.apache.fraud.search.base.BaseParser;
-import org.apache.fraud.search.rules.ChinaZM;
-import org.apache.fraud.search.rules.ChinaZP;
-import org.apache.fraud.search.rules.IP138;
 
+import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RulesChain implements BaseData {
-	private final static int maxFlag = ClassUtil.getClasses("org.apache.fraud.search.rules").size();
-	private static int flag = 0;
+	private static final String rulesPath = "org.apache.fraud.search.rules";
+	private static final List<Class<?>> clsList = ClassUtil.getClasses(rulesPath);
+	private static final int maxFlag = clsList.size();
 	private static final Vector<String> noResults = new Vector<>();
 
-	private static Vector<String> getVector(String url) {
-		Vector<String> recode = null;
-		BaseParser parser;
-		switch (flag) {
-			case 0:
-				parser = new ChinaZP(url);
-//				parser.printName(flag);
-				recode = parser.exec();
-				break;
-			case 1:
-				parser = new ChinaZM(url);
-//				parser.printName(flag);
-				recode = parser.exec();
-				break;
+	private static int flag = 0;
 
-			case 2:
-				parser = new IP138(url);
-//				parser.printName(flag);
-				recode = parser.exec();
-				break;
-			default:
-				break;
+	private static Vector<String> getVector(String url) {
+		BaseParser parser;
+		Vector<String> recode = null;
+
+		try {
+			Constructor<?> constructor = clsList.get(flag).getConstructor(String.class);
+			parser = (BaseParser) constructor.newInstance(url);
+
+//			parser.printName(flag);
+			recode = parser.exec();
+		} catch (Exception e) {
+			printException(e);
 		}
 
 		return recode;
@@ -49,17 +41,25 @@ public class RulesChain implements BaseData {
 
 	private static void moreTimes() {
 		if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
-			printToUserInterface("等待下一次搜索");
+			printToUserInterface("等待下一次搜索\n");
 			if (flag < maxFlag) {
 				flag++;
+			} else {
+				return;
 			}
-			for (String url : noResults)
+			for (String url : noResults) {
 				getVector(url);
+			}
+			moreTimes();
 		}
 	}
 
 	private static void printToUserInterface(String str) {
 		BaseData.printToUserInterface(str);
+	}
+
+	private static void printException(Exception e) {
+		BaseData.printException(e);
 	}
 
 	public void exec(String url) {

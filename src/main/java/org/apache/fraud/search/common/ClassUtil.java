@@ -5,6 +5,8 @@
 
 package org.apache.fraud.search.common;
 
+import org.apache.fraud.search.base.BaseData;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -141,18 +143,18 @@ public class ClassUtil {
 										// 添加到classes
 										classes.add(Class.forName(packageName + '.' + className));
 									} catch (ClassNotFoundException e) {
-										e.printStackTrace();
+										BaseData.printException(e);
 									}
 								}
 							}
 						}
 					} catch (IOException e) {
-						e.printStackTrace();
+						BaseData.printException(e);
 					}
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			BaseData.printException(e);
 		}
 
 		return classes;
@@ -188,7 +190,7 @@ public class ClassUtil {
 					// 添加到集合中去
 					classes.add(Class.forName(packageName + '.' + className));
 				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
+					BaseData.printException(e);
 				}
 			}
 		}

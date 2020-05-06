@@ -27,9 +27,9 @@ public class Common implements BaseData {
 
 			Files.deleteIfExists(backup.toPath());
 			Files.copy(HOSTS_PATH.toPath(), backup.toPath());
-			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath() + "\n");
+			BaseData.printToUserInterface("已备份hosts 文件至 ：  " + backup.toPath() + "\n\n");
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
+			BaseData.printException(e);
 		}
 	}
 
@@ -46,7 +46,7 @@ public class Common implements BaseData {
 
 			br.close();
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
+			BaseData.printException(e);
 		}
 	}
 
@@ -54,7 +54,7 @@ public class Common implements BaseData {
 		try {
 			Desktop.getDesktop().open(new File(ETC_PATH));
 		} catch (IOException e) {
-			BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n");
+			BaseData.printException(e);
 		}
 	}
 
