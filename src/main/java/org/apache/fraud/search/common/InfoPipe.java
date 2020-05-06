@@ -32,16 +32,24 @@ public class InfoPipe implements BaseData {
 
 	public synchronized void addInfo(Vector<String> recode) {
 		this.strings.addAll(recode);
-		this.strings.add("\n");
 	}
 
 	public synchronized void addInfo(String s) {
 		this.strings.add(s);
-//		this.strings.add("\n");
 	}
 
 	public void close() {
-		flag = false;
+		try {
+			Thread.sleep(50);
+			if (strings.size() > 0) {
+				for (String s : strings) {
+					BaseData.printToUserInterface(s);
+				}
+			}
+			flag = false;
+		} catch (InterruptedException e) {
+			BaseData.printException(e);
+		}
 	}
 
 	private Thread getThread() {
@@ -51,14 +59,9 @@ public class InfoPipe implements BaseData {
 	private class IterateThread extends Thread {
 		public synchronized void run() {
 			while (flag) {
-				try {
-					while (strings.size() > 0) {
-						printToUI(strings.get(0));
-						strings.remove(0);
-					}
-					sleep(5);
-				} catch (Exception e) {
-					BaseData.printException(e);
+				while (strings.size() > 0) {
+					printToUI(strings.get(0));
+					strings.remove(0);
 				}
 			}
 		}

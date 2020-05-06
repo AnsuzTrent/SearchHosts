@@ -109,7 +109,6 @@ public interface BaseData {
 	 * @param str 显示信息
 	 */
 	static void printToUserInterface(String str) {
-//		BaseData.callFunc(RETURN_STR_TO_USER_INTERFACE, str);
 		InfoPipe.getInstance().addInfo(str);
 	}
 
