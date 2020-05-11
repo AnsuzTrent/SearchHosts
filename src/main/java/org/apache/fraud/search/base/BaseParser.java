@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author trent
@@ -80,27 +82,13 @@ public abstract class BaseParser implements BaseData {
 		BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n Of the \"" + s + "\"\n");
 	}
 
-	protected Vector<String> makeRecode(String[] ipTmp, String host) {
+	protected Vector<String> makeRecode(String ipTmp, String host) {
 		Vector<String> recode = new Vector<>();
 
-		String[] ip = new String[ipTmp.length];
-
-		int i = 0, j = 0;
-		while (i < ipTmp.length) {
-			ipTmp[i] = ipTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
-			if ("".equals(ipTmp[i])) {
-				i++;
-				continue;
-			}
-			ip[j++] = ipTmp[i++];
-		}
-
-		for (String s : ip) {
-			if (s != null) {
-				if (!recode.contains("\n" + s + " " + host) & !"-".equals(s)) {
-					recode.addElement("\n" + s + " " + host);
-				}
-			}
+		Pattern pattern = Pattern.compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}");
+		Matcher matcher = pattern.matcher(ipTmp);
+		while (matcher.find()) {
+			recode.addElement("\n" + matcher.group() + " " + host);
 		}
 
 		Collections.sort(recode);

@@ -31,8 +31,8 @@ public class ChinaZP extends BaseParser {
 			Document doc = getDocumentFromPage(url);
 
 			// 包括IP, "-", 其它奇怪的东西，需要考虑换正则式
-			String[] ipTmp = doc.select("div.w60-0.tl").text()
-					.split("\\[.*?]");
+			String ipTmp = doc.select("div.w60-0.tl").text()
+					.replaceAll("(\\[(.+?)]|-)", "");
 
 			recode = makeRecode(ipTmp, site);
 

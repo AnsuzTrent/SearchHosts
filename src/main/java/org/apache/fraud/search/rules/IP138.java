@@ -28,8 +28,7 @@ public class IP138 extends BaseParser {
 			Document doc = getDocumentFromPage(url);
 
 			// 包括IP, "-", 其它奇怪的东西，需要考虑换正则式
-			String[] ipTmp = doc.select("div#curadress > p > a").text()
-					.split(" ");
+			String ipTmp = doc.select("div#curadress > p > a").text();
 
 			recode = makeRecode(ipTmp, site);
 

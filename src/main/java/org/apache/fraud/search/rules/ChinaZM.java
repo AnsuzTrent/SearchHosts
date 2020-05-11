@@ -28,8 +28,8 @@ public class ChinaZM extends BaseParser {
 			Document doc = getDocumentFromPage(url);
 
 			// 包括IP, "-", 其它奇怪的东西，需要考虑换正则式
-			String[] ipTmp = doc.select("td.z-tc.c-39 > span.c-green").text()
-					.split("(\\[.*?]| )");
+			String ipTmp = doc.select("td.z-tc.c-39 > span.c-green").text()
+					.replaceAll("(\\[(.+?)]|-)", "");
 
 			recode = makeRecode(ipTmp, site);
 
