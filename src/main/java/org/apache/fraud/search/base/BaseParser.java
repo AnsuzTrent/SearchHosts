@@ -88,7 +88,15 @@ public abstract class BaseParser implements BaseData {
 		Pattern pattern = Pattern.compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}");
 		Matcher matcher = pattern.matcher(ipTmp);
 		while (matcher.find()) {
-			recode.addElement("\n" + matcher.group() + " " + host);
+			String s = matcher.group();
+			String tmp = BaseData.filterRules(s);
+			if (!tmp.equals(s)) {
+				continue;
+			}
+			String s1 = "\n" + s + " " + host;
+			if (!recode.contains(s1)) {
+				recode.addElement(s1);
+			}
 		}
 
 		Collections.sort(recode);

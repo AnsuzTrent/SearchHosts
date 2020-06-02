@@ -33,7 +33,7 @@ public class RulesChain implements BaseData {
 //			parser.printName(flag);
 			recode = parser.exec();
 		} catch (Exception e) {
-			printException(e);
+			BaseData.printException(e);
 		}
 
 		return recode;
@@ -41,7 +41,7 @@ public class RulesChain implements BaseData {
 
 	private static void moreTimes() {
 		if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
-			printToUserInterface("等待下一次搜索\n");
+			BaseData.printToUserInterface("等待下一次搜索\n");
 			if (flag < maxFlag) {
 				flag++;
 			} else {
@@ -54,14 +54,6 @@ public class RulesChain implements BaseData {
 		}
 	}
 
-	private static void printToUserInterface(String str) {
-		BaseData.printToUserInterface(str);
-	}
-
-	private static void printException(Exception e) {
-		BaseData.printException(e);
-	}
-
 	public void exec(String url) {
 		String[] tmp = url.split("/");
 
@@ -72,7 +64,7 @@ public class RulesChain implements BaseData {
 
 		if (!"none".equals(recode.get(0))) {
 			BaseData.appendRecodeToFile(recode);
-			printToUserInterface("\n 完成");
+			BaseData.printToUserInterface("\n 完成");
 		} else {
 			noResults.add(recode.get(1));
 		}
@@ -82,7 +74,7 @@ public class RulesChain implements BaseData {
 	}
 
 	public void exec(Vector<String> urls) {
-		printToUserInterface("\n\n");
+		BaseData.printToUserInterface("\n\n");
 
 		//设定线程池，联网查询
 		ExecutorService pool = Executors.newFixedThreadPool(8);
@@ -103,7 +95,7 @@ public class RulesChain implements BaseData {
 			}
 		}
 
-		printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
+		BaseData.printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
 
 		moreTimes();
 
