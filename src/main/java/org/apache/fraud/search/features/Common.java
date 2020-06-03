@@ -1,8 +1,3 @@
-/*
- * Trent Inc.
- * Copyright (c) 2018- 2020.
- */
-
 package org.apache.fraud.search.features;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,9 +11,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 
-/**
- * @author trent
- */
 public class Common implements BaseData {
 
 	public static void backup() {

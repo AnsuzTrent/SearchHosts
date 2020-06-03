@@ -1,8 +1,3 @@
-/*
- * Trent Inc.
- * Copyright (c) 2018- 2020.
- */
-
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
