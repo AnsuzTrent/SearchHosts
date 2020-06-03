@@ -4,6 +4,10 @@
  */
 package org.apache.fraud.search.common;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.io.FileUtils;
+import org.apache.fraud.search.base.Data;
 import org.apache.fraud.search.features.Common;
 import org.apache.fraud.search.features.Search;
 import org.apache.fraud.search.features.Update;
@@ -12,12 +16,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * @author trent
  */
 public class UserInterface extends JFrame {
-
 	private static final JTextField hostsTextField = new JTextField();
 	private static final JButton searchButton = new JButton("搜索");
 	private static final JTextArea textArea = new JTextArea("请选择功能\n");
@@ -26,7 +32,19 @@ public class UserInterface extends JFrame {
 	private static final JButton openFolderButton = new JButton("打开hosts 所在文件夹");
 	private static final JButton flushButton = new JButton("刷新DNS 配置");
 	private static JScrollBar scrollBar = null;
-	public static JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
+	public static final JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
+	public static final List<Data> parserData = ThreadLocal.withInitial(() -> {
+		try {
+			String s = System.getProperty("user.dir");
+			File file = new File(s + "\\rules.json");
+			String content = FileUtils.readFileToString(file, "UTF-8");
+			return new Gson().<List<Data>>fromJson(content, new TypeToken<List<Data>>() {
+			}.getType());
+		} catch (IOException e) {
+			printException(e);
+		}
+		return null;
+	}).get();
 
 	public UserInterface() {
 		setTop();
@@ -98,7 +116,13 @@ public class UserInterface extends JFrame {
 		JPanel append = new JPanel();
 		append.setLayout(new GridLayout(1, 3));
 		append.add(hostsTextField);
-		searchButton.addActionListener(e -> new Search(hostsTextField.getText()).execute());
+		String s = hostsTextField.getText();
+		String[] tmp = s.split("/");
+		String uri = (s.startsWith("http:") | s.startsWith("https:")) ?
+				tmp[2] : tmp[0];
+
+		searchButton.addActionListener(e -> new Search(uri).execute());
+		hostsTextField.setText(uri);
 		append.add(searchButton);
 //		append.add(enableTwice);
 		add(append, BorderLayout.NORTH);
@@ -138,4 +162,5 @@ public class UserInterface extends JFrame {
 	private static void printException(Exception e) {
 		appendString("\nError in [" + e.getMessage() + "]\n");
 	}
+
 }

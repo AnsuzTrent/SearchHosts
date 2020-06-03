@@ -1,0 +1,20 @@
+[
+  {
+    "name": "站长之家PC 版",
+    "url": "http://tool.chinaz.com/dns?type=1&host=${website}&ip=",
+    "cssQuery": "div.w60-0.tl",
+    "replaceRegex": "(\\[(.+?)]|-)"
+  },
+  {
+    "name": "IP138",
+    "url": "https://site.ip138.com/${website}",
+    "cssQuery": "div#curadress > p > a",
+    "replaceRegex": ""
+  },
+  {
+    "name": "站长之家手机版",
+    "url": "https://mtool.chinaz.com/dns/?host=${website}&ip=&accessmode=1",
+    "cssQuery": "td.z-tc.c-39 > span.c-green",
+    "replaceRegex": "(\\[(.+?)]|-)"
+  }
+]

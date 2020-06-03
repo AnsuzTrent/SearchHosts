@@ -1,20 +1,24 @@
 # SearchHosts
 
 #### 介绍
-更加便捷地更改hosts 文件以访问类似于 "[Github.com](https://github.com)"、"www.python.org" 的网站
+更加便捷地更改hosts 文件以访问类似于 "[Github](https://github.com)"、["Python"]("https://www.python.org") 的网站
 
-感谢站长之家（[tool.chinaz.com/dns](https://tool.chinaz.com/dns)）提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
+感谢[站长之家](https://tool.chinaz.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
+
+感谢[站长之家(手机版)](https://mtool.chinaz.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
+
+感谢[IP138](https://site.ip138.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
 
 
 #### 软件架构
-java 项目
+没什么架构，挺乱的
 
 #### 安装教程
-?
+没什么教程，但请注意打好的jar 包旁边必须要有rules.json 文件，否则界面打不开
 
 #### 使用说明
-联网查询规则位于"org.apache.fraud.search.rules" 包
-新增规则请继承"org.apache.fraud.search.base.BaseParser" ，并重写"getResult()"方法。
+新增规则请在rules.json 文件中增加，需要的信息有：网站名称、get 提交方式的网址（用"${website}"代替要查询的网站）、可被识别的CSSQuery、去除多余字符的正则式。
+
 执行时请使用exec()方法
 
 #### 参与贡献

@@ -18,17 +18,22 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- * @author trent
- */
-public abstract class BaseParser implements BaseData {
-
+public class Parser {
 	protected String site;
 	protected String name;
+	protected String url;
+	protected String cssQuery;
+	protected String replaceRegex;
 
-	public BaseParser(String site) {
+	public Parser(Data data, String site) {
 		this.site = site;
+		this.name = data.name;
+		this.url = data.url.replace("${website}", site);
+		this.cssQuery = data.cssQuery;
+		this.replaceRegex = data.replaceRegex;
 	}
 
 	protected Document getDocumentFromPage(String url) throws IOException {
@@ -68,38 +73,19 @@ public abstract class BaseParser implements BaseData {
 		return Jsoup.parse(page.asXml());
 	}
 
-	protected void printToUserInterface(String str) {
-		BaseData.printToUserInterface(str);
-	}
-
-	protected static void printException(Exception e) {
-		BaseData.printException(e);
-	}
-
-	protected static void printException(Exception e, String s) {
-		BaseData.printToUserInterface("\nError in [" + e.getMessage() + "]\n Of the \"" + s + "\"\n");
-	}
-
-	protected Vector<String> makeRecode(String[] ipTmp, String host) {
+	protected Vector<String> makeRecode(String ipTmp, String host) {
 		Vector<String> recode = new Vector<>();
-
-		String[] ip = new String[ipTmp.length];
-
-		int i = 0, j = 0;
-		while (i < ipTmp.length) {
-			ipTmp[i] = ipTmp[i].replaceAll("([ \\-]|\\.\\.+)", "");
-			if ("".equals(ipTmp[i])) {
-				i++;
+		String ipRegex = "((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}";
+		Matcher matcher = Pattern.compile(ipRegex).matcher(ipTmp);
+		while (matcher.find()) {
+			String s = matcher.group();
+			String tmp = BaseData.filterRules(s);
+			if (!tmp.equals(s)) {
 				continue;
 			}
-			ip[j++] = ipTmp[i++];
-		}
-
-		for (String s : ip) {
-			if (s != null) {
-				if (!recode.contains("\n" + s + " " + host) & !"-".equals(s)) {
-					recode.addElement("\n" + s + " " + host);
-				}
+			String s1 = "\n" + s + " " + host;
+			if (!recode.contains(s1)) {
+				recode.addElement(s1);
 			}
 		}
 
@@ -113,7 +99,37 @@ public abstract class BaseParser implements BaseData {
 	 *
 	 * @return 完整结果
 	 */
-	protected abstract Vector<String> getResult();
+	protected Vector<String> getResult() {
+		Vector<String> recode;
+		try {
+			Document doc = getDocumentFromPage(url);
+
+			String ipTmp = doc.select(cssQuery).text();
+			if (!"".equals(replaceRegex)) {
+				ipTmp = ipTmp.replaceAll(replaceRegex, "");
+			}
+
+			recode = makeRecode(ipTmp, site);
+
+			// 取得结果是否为空
+			if (recode != null && !recode.isEmpty()) {
+				recode.addElement("\n");
+			} else {
+				recode = new Vector<>();
+				recode.add("none");
+				recode.add(site);
+				recode.add("\n输入的网址:" + site + " 没有找到对应ip\n");
+			}
+
+		} catch (Exception e) {
+			recode = new Vector<>();
+			recode.add("none");
+			recode.add(site);
+			recode.add("\nError in [" + e.getMessage() + "]\n Of the \"" + site + "\"\n");
+		}
+
+		return recode;
+	}
 
 	public Vector<String> exec() {
 		Vector<String> record = this.getResult();
@@ -122,7 +138,7 @@ public abstract class BaseParser implements BaseData {
 	}
 
 	public void printName(int flag) {
-		printToUserInterface("正在使用[" + this.name + "] 进行第 " + flag + " 次查询\n");
+		BaseData.printToUserInterface("正在使用[" + this.name + "] 进行第 " + flag + " 次查询\n");
 	}
 
 }

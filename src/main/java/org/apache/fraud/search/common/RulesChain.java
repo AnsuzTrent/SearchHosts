@@ -6,47 +6,59 @@
 package org.apache.fraud.search.common;
 
 import org.apache.fraud.search.base.BaseData;
-import org.apache.fraud.search.base.BaseParser;
+import org.apache.fraud.search.base.Data;
+import org.apache.fraud.search.base.Parser;
 
-import java.lang.reflect.Constructor;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RulesChain implements BaseData {
-	private static final String rulesPath = "org.apache.fraud.search.rules";
-	private static final List<Class<?>> clsList = ClassUtil.getClasses(rulesPath);
-	private static final int maxFlag = clsList.size();
-	private static final Vector<String> noResults = new Vector<>();
+	private final List<Data> parserData;
+	private final int maxFlag;
+	private final Vector<String> noResults = new Vector<>();
 
-	private static int flag = 0;
+	private int flag = 0;
 
-	private static Vector<String> getVector(String url) {
-		BaseParser parser;
-		Vector<String> recode = null;
-
-		try {
-			Constructor<?> constructor = clsList.get(flag).getConstructor(String.class);
-			parser = (BaseParser) constructor.newInstance(url);
-
-//			parser.printName(flag);
-			recode = parser.exec();
-		} catch (Exception e) {
-			printException(e);
-		}
-
-		return recode;
+	public RulesChain(List<Data> parserData) {
+		this.parserData = parserData;
+		this.maxFlag = parserData.size();
 	}
 
-	private static void moreTimes() {
+	private void getVector(String url) {
+		Parser parser = new Parser(parserData.get(0), url);
+		Vector<String> recode = parser.exec();
+
+		if (!"none".equals(recode.get(0))) {
+			synchronized (this) {
+				try {
+					FileWriter fileWriter = new FileWriter(OBTAIN_FILE, true);
+					for (String str : recode) {
+						BaseData.printToUserInterface(str);
+						fileWriter.write(str);
+					}
+					fileWriter.close();
+				} catch (IOException e) {
+					BaseData.printException(e);
+				}
+			}
+		} else {
+			noResults.add(recode.get(1));
+			BaseData.printToUserInterface(recode.get(2));
+		}
+	}
+
+	private void moreTimes() {
 		if (!noResults.isEmpty() & UserInterface.enableTwice.isSelected()) {
-			printToUserInterface("等待下一次搜索\n");
 			if (flag < maxFlag) {
 				flag++;
 			} else {
 				return;
 			}
+			BaseData.printToUserInterface("等待下一次搜索\n");
 			for (String url : noResults) {
 				getVector(url);
 			}
@@ -54,47 +66,19 @@ public class RulesChain implements BaseData {
 		}
 	}
 
-	private static void printToUserInterface(String str) {
-		BaseData.printToUserInterface(str);
-	}
-
-	private static void printException(Exception e) {
-		BaseData.printException(e);
-	}
-
 	public void exec(String url) {
-		String[] tmp = url.split("/");
-
-		String uri = (url.startsWith("http:") | url.startsWith("https:")) ?
-				tmp[2] : tmp[0];
-
-		Vector<String> recode = getVector(uri);
-
-		if (!"none".equals(recode.get(0))) {
-			BaseData.appendRecodeToFile(recode);
-			printToUserInterface("\n 完成");
-		} else {
-			noResults.add(recode.get(1));
-		}
-
+		getVector(url);
+		BaseData.printToUserInterface("\n 完成");
 		moreTimes();
-
 	}
 
 	public void exec(Vector<String> urls) {
-		printToUserInterface("\n\n");
+		BaseData.printToUserInterface("\n\n");
 
 		//设定线程池，联网查询
 		ExecutorService pool = Executors.newFixedThreadPool(8);
 		for (String url : urls) {
-			pool.execute(() -> {
-				Vector<String> tmp = getVector(url);
-				if (!"none".equals(tmp.get(0))) {
-					BaseData.appendRecodeToFile(tmp);
-				} else {
-					noResults.add(tmp.get(1));
-				}
-			});
+			pool.execute(() -> getVector(url));
 		}
 		pool.shutdown();
 		while (true) {
@@ -103,8 +87,10 @@ public class RulesChain implements BaseData {
 			}
 		}
 
-		printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
-
+		BaseData.printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
+		for (String s : noResults) {
+			BaseData.printToUserInterface("\n未完成" + s + "\n");
+		}
 		moreTimes();
 
 	}

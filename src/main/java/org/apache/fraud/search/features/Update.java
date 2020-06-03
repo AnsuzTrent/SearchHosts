@@ -7,6 +7,7 @@ package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
 import org.apache.fraud.search.common.RulesChain;
+import org.apache.fraud.search.common.UserInterface;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+
+import static org.apache.fraud.search.common.UserInterface.parserData;
 
 /**
  * @author trent
@@ -51,7 +54,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected Void doInBackground() {
-		BaseData.callFunc(INIT_RUN);
+		UserInterface.initRun();
 		Common.backup();
 
 		Vector<String> urlsLocal;
@@ -71,7 +74,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					fileWriter.close();
 					local.clear();
 
-					new RulesChain().exec(urlsLocal);
+					new RulesChain(parserData).exec(urlsLocal);
 
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
@@ -95,7 +98,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected void done() {
-		BaseData.callFunc(END);
+		UserInterface.end();
 	}
 
 	private Vector<String> readHosts() {
@@ -107,15 +110,19 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			String s;
 			//逐行读取文件记录
 			while ((s = bufferedReader.readLine()) != null) {
-				//过滤# 开头的注释以及空行
-				if (filterRules(s) != 0) {
-					continue;
-				}
-				//以空格作为分割点
-				String[] fromFile = s.replace("\t", " ").split(" ");
-				//过滤重复
-				if (!recode.contains(fromFile[1])) {
-					recode.addElement(fromFile[1]);
+				String tmp = BaseData.filterRules(s);
+				if (tmp.equals(s)) {    //过滤# 开头的注释以及空行
+					//以空格作为分割点
+					String[] fromFile = s.replace("\t", " ").split(" ");
+					//过滤重复
+					if (!recode.contains(fromFile[1])) {
+						recode.addElement(fromFile[1]);
+					}
+				} else {
+					if ("内网IP:".equals(tmp)) {
+						publish("内网IP:\t" + s + "\n");
+						local.addElement(s + "\n");
+					}
 				}
 			}
 			if (local.size() > 0) {
@@ -129,43 +136,4 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
 	}
-
-	private int filterRules(String str) {
-		if (str.startsWith("#") |
-				"".equals(str) |
-				str.startsWith("\uFEFF")) {
-			return 1;
-		} else if (str.startsWith("0.0.0.0") |
-				str.startsWith("10.") |
-				str.startsWith("127.") |
-				str.startsWith("169.254.") |
-				str.startsWith("172.16.") |
-				str.startsWith("172.17.") |
-				str.startsWith("172.18.") |
-				str.startsWith("172.19.") |
-				str.startsWith("172.20.") |
-				str.startsWith("172.21.") |
-				str.startsWith("172.22.") |
-				str.startsWith("172.23.") |
-				str.startsWith("172.24.") |
-				str.startsWith("172.25.") |
-				str.startsWith("172.26.") |
-				str.startsWith("172.27.") |
-				str.startsWith("172.28.") |
-				str.startsWith("172.29.") |
-				str.startsWith("172.30.") |
-				str.startsWith("172.31.") |
-				str.startsWith("191.255.255.255") |
-				str.startsWith("192.168.")
-
-		) {
-			publish("内网IP:\t" + str + "\n");
-			local.addElement(str + "\n");
-			return 2;
-		} else {
-			return 0;
-		}
-	}
-
-
 }
