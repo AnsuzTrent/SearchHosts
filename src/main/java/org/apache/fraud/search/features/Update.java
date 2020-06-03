@@ -7,6 +7,7 @@ package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
 import org.apache.fraud.search.common.RulesChain;
+import org.apache.fraud.search.common.UserInterface;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+
+import static org.apache.fraud.search.common.UserInterface.parserData;
 
 /**
  * @author trent
@@ -51,7 +54,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected Void doInBackground() {
-		BaseData.callFunc(INIT_RUN);
+		UserInterface.initRun();
 		Common.backup();
 
 		Vector<String> urlsLocal;
@@ -71,7 +74,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					fileWriter.close();
 					local.clear();
 
-					new RulesChain().exec(urlsLocal);
+					new RulesChain(parserData).exec(urlsLocal);
 
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
@@ -95,7 +98,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected void done() {
-		BaseData.callFunc(END);
+		UserInterface.end();
 	}
 
 	private Vector<String> readHosts() {

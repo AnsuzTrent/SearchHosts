@@ -7,15 +7,15 @@ package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
 import org.apache.fraud.search.common.RulesChain;
+import org.apache.fraud.search.common.UserInterface;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-/**
- * @author trent
- */
+import static org.apache.fraud.search.common.UserInterface.parserData;
+
 public class Search extends SwingWorker<Void, String> implements BaseData {
 	String url;
 
@@ -25,7 +25,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected Void doInBackground() {
-		BaseData.callFunc(INIT_RUN);
+		UserInterface.initRun();
 
 		if ("".equals(url)) {
 			try {
@@ -44,7 +44,7 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 		}
 
 		//获取结果
-		new RulesChain().exec(url);
+		new RulesChain(parserData).exec(url);
 
 		return null;
 	}
@@ -58,6 +58,6 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 
 	@Override
 	protected void done() {
-		BaseData.callFunc(END);
+		UserInterface.end();
 	}
 }
