@@ -1,8 +1,3 @@
-/*
- * Trent Inc.
- * Copyright (c) 2018- 2020.
- */
-
 package org.apache.fraud.search.base;
 
 import org.apache.fraud.search.common.InfoPipe;
@@ -13,9 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * @author trent
- */
 public interface BaseData {
 	String ETC_PATH = "C:\\Windows\\System32\\drivers\\etc";
 	/**

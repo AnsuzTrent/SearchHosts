@@ -1,7 +1,3 @@
-/*
- * Trent Inc.
- * Copyright (c) 2018- 2020.
- */
 package org.apache.fraud.search.common;
 
 import com.google.gson.Gson;
@@ -20,9 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author trent
- */
 public class UserInterface extends JFrame {
 	private static final JTextField hostsTextField = new JTextField();
 	private static final JButton searchButton = new JButton("搜索");

@@ -3,12 +3,15 @@
 #### 介绍
 更加便捷地更改hosts 文件以访问类似于 "[Github](https://github.com)"、["Python"]("https://www.python.org") 的网站
 
+可以输入网址获取IP，也可以更新整个hosts 文件
+
 感谢[站长之家](https://tool.chinaz.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
 
 感谢[站长之家(手机版)](https://mtool.chinaz.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
 
 感谢[IP138](https://site.ip138.com)提供的搜索接口支持——尽管他们不知道我在这个程序里用了他们的网站
 
+如果想加速游戏软件 ，为什么不试试UsbEAm Hosts Editor 呢？但请注意，使用本软件更新后UsbEAm Hosts Editor 对此前其写入的批量删除功能将失效——我们搜索的时候不带注释
 
 #### 软件架构
 没什么架构，挺乱的

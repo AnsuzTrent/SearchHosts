@@ -1,8 +1,3 @@
-/*
- * Trent Inc.
- * Copyright (c) 2018- 2020.
- */
-
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.BaseData;
@@ -20,9 +15,6 @@ import java.util.Vector;
 
 import static org.apache.fraud.search.common.UserInterface.parserData;
 
-/**
- * @author trent
- */
 public class Update extends SwingWorker<Void, String> implements BaseData {
 
 	private static final Vector<String> local = new Vector<>();
