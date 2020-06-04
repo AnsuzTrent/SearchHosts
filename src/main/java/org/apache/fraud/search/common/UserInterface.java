@@ -109,13 +109,14 @@ public class UserInterface extends JFrame {
 		JPanel append = new JPanel();
 		append.setLayout(new GridLayout(1, 3));
 		append.add(hostsTextField);
-		String s = hostsTextField.getText();
-		String[] tmp = s.split("/");
-		String uri = (s.startsWith("http:") | s.startsWith("https:")) ?
-				tmp[2] : tmp[0];
-
-		searchButton.addActionListener(e -> new Search(uri).execute());
-		hostsTextField.setText(uri);
+		searchButton.addActionListener(e -> {
+			String s = hostsTextField.getText();
+			String[] tmp = s.split("/");
+			String uri = (s.startsWith("http:") | s.startsWith("https:")) ?
+					tmp[2] : tmp[0];
+			new Search(uri).execute();
+			hostsTextField.setText(uri);
+		});
 		append.add(searchButton);
 //		append.add(enableTwice);
 		add(append, BorderLayout.NORTH);
