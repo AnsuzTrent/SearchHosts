@@ -1,17 +1,13 @@
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.base.BaseData;
+import org.apache.fraud.search.base.Base;
 import org.apache.fraud.search.common.RulesChain;
 import org.apache.fraud.search.common.UserInterface;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 
-import static org.apache.fraud.search.common.UserInterface.parserData;
-
-public class Search extends SwingWorker<Void, String> implements BaseData {
+public class Search extends Base {
 	String url;
 
 	public Search(String url) {
@@ -21,21 +17,16 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 	@Override
 	protected Void doInBackground() {
 		UserInterface.initRun();
-
-		if ("".equals(url)) {
-			try {
+		try {
+			if ("".equals(url)) {
 				publish("请在搜索栏中写入网址\n");
 				Files.deleteIfExists(OBTAIN_FILE.toPath());
-			} catch (IOException e) {
-				BaseData.printException(e);
+				return null;
 			}
-			return null;
-		}
-		try {
 			Files.deleteIfExists(OBTAIN_FILE.toPath());
 			Files.copy(HOSTS_PATH.toPath(), OBTAIN_FILE.toPath());
 		} catch (IOException e) {
-			BaseData.printException(e);
+			Base.printException(e);
 		}
 
 		//获取结果
@@ -44,15 +35,4 @@ public class Search extends SwingWorker<Void, String> implements BaseData {
 		return null;
 	}
 
-	@Override
-	protected void process(List<String> chunks) {
-		for (String s : chunks) {
-			BaseData.printToUserInterface(s);
-		}
-	}
-
-	@Override
-	protected void done() {
-		UserInterface.end();
-	}
 }

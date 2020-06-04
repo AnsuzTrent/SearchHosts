@@ -1,6 +1,6 @@
 package org.apache.fraud.search.common;
 
-import org.apache.fraud.search.base.BaseData;
+import org.apache.fraud.search.base.Base;
 import org.apache.fraud.search.base.Data;
 import org.apache.fraud.search.base.Parser;
 
@@ -11,7 +11,9 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class RulesChain implements BaseData {
+import static org.apache.fraud.search.base.Base.OBTAIN_FILE;
+
+public class RulesChain {
 	private final List<Data> parserData;
 	private final int maxFlag;
 	private final Vector<String> noResults = new Vector<>();
@@ -32,17 +34,17 @@ public class RulesChain implements BaseData {
 				try {
 					FileWriter fileWriter = new FileWriter(OBTAIN_FILE, true);
 					for (String str : recode) {
-						BaseData.printToUserInterface(str);
+						Base.printToUserInterface(str);
 						fileWriter.write(str);
 					}
 					fileWriter.close();
 				} catch (IOException e) {
-					BaseData.printException(e);
+					Base.printException(e);
 				}
 			}
 		} else {
 			noResults.add(recode.get(1));
-			BaseData.printToUserInterface(recode.get(2));
+			Base.printToUserInterface(recode.get(2));
 		}
 	}
 
@@ -53,7 +55,7 @@ public class RulesChain implements BaseData {
 			} else {
 				return;
 			}
-			BaseData.printToUserInterface("等待下一次搜索\n");
+			Base.printToUserInterface("等待下一次搜索\n");
 			for (String url : noResults) {
 				getVector(url);
 			}
@@ -63,12 +65,12 @@ public class RulesChain implements BaseData {
 
 	public void exec(String url) {
 		getVector(url);
-		BaseData.printToUserInterface("\n 完成");
+		Base.printToUserInterface("\n 完成");
 		moreTimes();
 	}
 
 	public void exec(Vector<String> urls) {
-		BaseData.printToUserInterface("\n\n");
+		Base.printToUserInterface("\n\n");
 
 		//设定线程池，联网查询
 		ExecutorService pool = Executors.newFixedThreadPool(8);
@@ -82,9 +84,9 @@ public class RulesChain implements BaseData {
 			}
 		}
 
-		BaseData.printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
+		Base.printToUserInterface("\n完成(" + (urls.size() - noResults.size()) + "/" + urls.size() + ")\n");
 		for (String s : noResults) {
-			BaseData.printToUserInterface("\n未完成" + s + "\n");
+			Base.printToUserInterface("\n未完成" + s + "\n");
 		}
 		moreTimes();
 
