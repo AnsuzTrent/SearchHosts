@@ -74,7 +74,7 @@ public class Parser {
 		Matcher matcher = Pattern.compile(ipRegex).matcher(ipTmp);
 		while (matcher.find()) {
 			String s = matcher.group();
-			String tmp = BaseData.filterRules(s);
+			String tmp = Base.filterRules(s);
 			if (!tmp.equals(s)) {
 				continue;
 			}
@@ -133,7 +133,7 @@ public class Parser {
 	}
 
 	public void printName(int flag) {
-		BaseData.printToUserInterface("正在使用[" + this.name + "] 进行第 " + flag + " 次查询\n");
+		Base.printToUserInterface("正在使用[" + this.name + "] 进行第 " + flag + " 次查询\n");
 	}
 
 }

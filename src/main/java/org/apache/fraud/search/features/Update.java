@@ -1,22 +1,17 @@
 package org.apache.fraud.search.features;
 
-import org.apache.fraud.search.base.BaseData;
+import org.apache.fraud.search.base.Base;
 import org.apache.fraud.search.common.RulesChain;
 import org.apache.fraud.search.common.UserInterface;
 
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Vector;
 
-import static org.apache.fraud.search.common.UserInterface.parserData;
-
-public class Update extends SwingWorker<Void, String> implements BaseData {
-
+public class Update extends Base {
 	private static final Vector<String> local = new Vector<>();
 
 	private static String proString() {
@@ -71,7 +66,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 					//移动，但目前不能获取管理员权限写入C 盘
 //					Files.move(editFile.toPath(), hostsPath.toPath());
 				} catch (IOException e) {
-					BaseData.printException(e);
+					Base.printException(e);
 				}
 			}
 		} else {
@@ -79,18 +74,6 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 		}
 
 		return null;
-	}
-
-	@Override
-	protected void process(List<String> chunks) {
-		for (String s : chunks) {
-			BaseData.printToUserInterface(s);
-		}
-	}
-
-	@Override
-	protected void done() {
-		UserInterface.end();
 	}
 
 	private Vector<String> readHosts() {
@@ -102,7 +85,7 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			String s;
 			//逐行读取文件记录
 			while ((s = bufferedReader.readLine()) != null) {
-				String tmp = BaseData.filterRules(s);
+				String tmp = Base.filterRules(s);
 				if (tmp.equals(s)) {    //过滤# 开头的注释以及空行
 					//以空格作为分割点
 					String[] fromFile = s.replace("\t", " ").split(" ");
@@ -123,9 +106,10 @@ public class Update extends SwingWorker<Void, String> implements BaseData {
 			fileReader.close();
 			bufferedReader.close();
 		} catch (IOException e) {
-			BaseData.printException(e);
+			Base.printException(e);
 		}
 		Collections.sort(recode);
 		return recode.isEmpty() ? null : recode;
 	}
+
 }

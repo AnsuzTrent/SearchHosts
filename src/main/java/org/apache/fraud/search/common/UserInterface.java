@@ -1,9 +1,5 @@
 package org.apache.fraud.search.common;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.apache.commons.io.FileUtils;
-import org.apache.fraud.search.base.Data;
 import org.apache.fraud.search.features.Common;
 import org.apache.fraud.search.features.Search;
 import org.apache.fraud.search.features.Update;
@@ -12,11 +8,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 public class UserInterface extends JFrame {
+	public static final JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
 	private static final JTextField hostsTextField = new JTextField();
 	private static final JButton searchButton = new JButton("搜索");
 	private static final JTextArea textArea = new JTextArea("请选择功能\n");
@@ -25,19 +19,6 @@ public class UserInterface extends JFrame {
 	private static final JButton openFolderButton = new JButton("打开hosts 所在文件夹");
 	private static final JButton flushButton = new JButton("刷新DNS 配置");
 	private static JScrollBar scrollBar = null;
-	public static final JCheckBox enableTwice = new JCheckBox("开启二次搜索", false);
-	public static final List<Data> parserData = ThreadLocal.withInitial(() -> {
-		try {
-			String s = System.getProperty("user.dir");
-			File file = new File(s + "\\rules.json");
-			String content = FileUtils.readFileToString(file, "UTF-8");
-			return new Gson().<List<Data>>fromJson(content, new TypeToken<List<Data>>() {
-			}.getType());
-		} catch (IOException e) {
-			printException(e);
-		}
-		return null;
-	}).get();
 
 	public UserInterface() {
 		setTop();
@@ -79,7 +60,7 @@ public class UserInterface extends JFrame {
 		enableTwice.setEnabled(flag);
 	}
 
-	public static synchronized void appendString(String str) {
+	public static synchronized void printToUI(String str) {
 		textArea.append(str);
 		try {
 			Thread.sleep(10);
@@ -102,6 +83,10 @@ public class UserInterface extends JFrame {
 			printException(e);
 		}
 		scrollBar.setValue(scrollBar.getMaximum());
+	}
+
+	private static void printException(Exception e) {
+		printToUI("\nError in [" + e.getMessage() + "]\n");
 	}
 
 	private void setTop() {
@@ -151,10 +136,6 @@ public class UserInterface extends JFrame {
 		flushButton.addActionListener(e -> Common.flushCache());
 		backup.add(flushButton);
 		add(backup, BorderLayout.SOUTH);
-	}
-
-	private static void printException(Exception e) {
-		appendString("\nError in [" + e.getMessage() + "]\n");
 	}
 
 }
