@@ -1,8 +1,5 @@
 package org.apache.fraud.search.base;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.apache.commons.io.FileUtils;
 import org.apache.fraud.search.common.InfoPipe;
 import org.apache.fraud.search.common.UserInterface;
 
@@ -39,33 +36,11 @@ public abstract class Base extends SwingWorker<Void, String> {
 
 		return ipFilterRegexList;
 	}).get();
-	public static List<Data> parserData = ThreadLocal.withInitial(() -> {
-		String json;
-		try {
-			String s = System.getProperty("user.dir");
-			File file = new File(s + "\\rules.json");
-			json = FileUtils.readFileToString(file, "UTF-8");
-			printToUserInterface("载入外附规则文件，使用");
-		} catch (Exception e) {
-			json = "[\n" +
-					"  {\n" +
-					"    \"name\": \"站长之家PC 版\",\n" +
-					"    \"url\": \"http://tool.chinaz.com/dns?type=1&host=${website}&ip=\",\n" +
-					"    \"cssQuery\": \"div.w60-0.tl\",\n" +
-					"    \"replaceRegex\": \"(\\\\[(.+?)]|-)\"\n" +
-					"  }\n" +
-					"]";
-			printToUserInterface("无外附规则文件，使用默认");
-		}
-		List<Data> data = new Gson().fromJson(json, new TypeToken<List<Data>>() {
-		}.getType());
-		printToUserInterface("规则：\n");
-		for (Data d : data) {
-			printToUserInterface("[" + d.name + "] ");
-		}
+	public List<Data> parserData;
 
-		return data;
-	}).get();
+	public Base(List<Data> parserData) {
+		this.parserData = parserData;
+	}
 
 	/**
 	 * 显示到UI

@@ -51,7 +51,7 @@ public class InfoPipe {
 		public synchronized void run() {
 			while (flag) {
 				while (strings.size() > 0) {
-					UserInterface.printToUI(strings.get(0));
+					UserInterface.printToUserInterface(strings.get(0));
 					strings.remove(0);
 				}
 			}

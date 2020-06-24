@@ -1,6 +1,7 @@
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.Base;
+import org.apache.fraud.search.base.Data;
 import org.apache.fraud.search.common.RulesChain;
 import org.apache.fraud.search.common.UserInterface;
 
@@ -9,10 +10,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 
 public class Update extends Base {
 	private static final Vector<String> local = new Vector<>();
+
+	public Update(List<Data> parserData) {
+		super(parserData);
+	}
 
 	private static String proString() {
 		return "# Copyright (c) 1993-2009 Microsoft Corp.\n" +

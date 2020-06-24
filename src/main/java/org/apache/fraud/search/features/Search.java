@@ -1,16 +1,19 @@
 package org.apache.fraud.search.features;
 
 import org.apache.fraud.search.base.Base;
+import org.apache.fraud.search.base.Data;
 import org.apache.fraud.search.common.RulesChain;
 import org.apache.fraud.search.common.UserInterface;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 public class Search extends Base {
 	String url;
 
-	public Search(String url) {
+	public Search(String url, List<Data> rules) {
+		super(rules);
 		this.url = url;
 	}
 
