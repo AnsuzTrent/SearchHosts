@@ -9,13 +9,16 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
+		<!--软件生成位置 -->
+		<copy.to>D:\My Document\Desktop\Search Hosts</copy.to>
+
 		<java.version>1.8</java.version>
 		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- https://mvnrepository.com/artifact/net.sourceforge.htmlunit/htmlunit -->
-		<htmlunit.version>2.40.0</htmlunit.version>
+		<htmlunit.version>2.41.0</htmlunit.version>
 		<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
 		<jsoup.version>1.13.1</jsoup.version>
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
@@ -52,62 +55,50 @@
 		<finalName>Hosts</finalName>
 		<plugins>
 			<!-- http://maven.apache.org/plugins/-->
-			<!-- 清理-->
-			<plugin>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>auto-clean</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>clean</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<!-- 编译-->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
-				<executions>
-					<execution>
-						<id>compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${maven.compiler.encoding}</encoding>
 				</configuration>
 			</plugin>
-			<!-- 打包-->
 			<plugin>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<!-- 指定入口类 -->
+							<mainClass>org.apache.fraud.search.Main</mainClass>
+							<!-- 在jar的MF文件中生成classpath属性 -->
+							<addClasspath>true</addClasspath>
+							<!-- classpath前缀,即依赖jar包的路径 -->
+							<classpathPrefix>lib/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<!--外部依赖jar包导出-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-dependencies</id>
 						<phase>package</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<transformers>
-								<transformer
-										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.apache.fraud.search.Main</mainClass>
-								</transformer>
-							</transformers>
+							<!-- 指定依赖包的输出路径，需与上方的classpathPrefix保持一致 -->
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
 						</configuration>
 					</execution>
 				</executions>
@@ -122,11 +113,20 @@
 						<phase>package</phase>
 						<configuration>
 							<tasks>
-								<copy todir="D:\My Document\Desktop\Search Hosts">
+								<copy todir="${copy.to}">
 									<!-- 从哪里拷贝 -->
-									<fileset dir="${project.build.directory}\">
+									<fileset dir="${project.basedir}">
 										<!-- 拷贝内容 -->
+										<include name="run.*"/>
+										<include name="rules.json"/>
+									</fileset>
+									<fileset dir="${project.build.directory}">
 										<include name="Hosts.jar"/>
+									</fileset>
+								</copy>
+								<copy todir="${copy.to}\lib">
+									<fileset dir="${project.build.directory}\lib">
+										<include name="*.jar"/>
 									</fileset>
 								</copy>
 							</tasks>
