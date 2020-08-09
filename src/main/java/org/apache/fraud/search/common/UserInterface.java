@@ -61,6 +61,9 @@ public class UserInterface extends JFrame {
         setBottle();
 
         setTitle("Search Hosts in Website");
+        setUndecorated(true);
+        getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+
         setSize(500, 500);
         //是否可改变大小
         setResizable(false);

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<groupId>org.apache.fraud</groupId>
-	<artifactId>SearchHosts</artifactId>
-	<version>1.0</version>
-	<modelVersion>4.0.0</modelVersion>
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <groupId>org.apache.fraud</groupId>
+    <artifactId>SearchHosts</artifactId>
+    <version>1.0</version>
+    <modelVersion>4.0.0</modelVersion>
 
-	<properties>
+    <properties>
         <!--软件生成位置 -->
         <copy.to>D:\My Document\Desktop\Search Hosts</copy.to>
 
@@ -17,22 +17,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+        <!-- https://mvnrepository.com/artifact/com.formdev/flatlaf -->
         <flatlaf.version>0.39</flatlaf.version>
         <!-- https://mvnrepository.com/artifact/net.sourceforge.htmlunit/htmlunit -->
-        <htmlunit.version>2.41.0</htmlunit.version>
+        <htmlunit.version>2.42.0</htmlunit.version>
         <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
         <jsoup.version>1.13.1</jsoup.version>
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <gson.version>2.8.6</gson.version>
     </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>${jsoup.version}</version>
-		</dependency>
-		<dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+        <dependency>
             <groupId>net.sourceforge.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
             <version>${htmlunit.version}</version>
@@ -52,10 +53,10 @@
 
     </dependencies>
 
-	<build>
-		<finalName>Hosts</finalName>
-		<plugins>
-			<!-- http://maven.apache.org/plugins/-->
+    <build>
+        <finalName>Hosts</finalName>
+        <plugins>
+            <!-- http://maven.apache.org/plugins/-->
             <!-- 编译-->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -81,80 +82,80 @@
                             <!-- classpath前缀,即依赖jar包的路径 -->
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<!--外部依赖jar包导出-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<!-- 指定依赖包的输出路径，需与上方的classpathPrefix保持一致 -->
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-							<overWriteIfNewer>true</overWriteIfNewer>
-							<overWriteReleases>false</overWriteReleases>
-							<overWriteSnapshots>false</overWriteSnapshots>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- 复制-->
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
-				<executions>
-					<execution>
-						<id>copy-lib</id>
-						<phase>package</phase>
-						<configuration>
-							<tasks>
-								<copy todir="${copy.to}">
-									<!-- 从哪里拷贝 -->
-									<fileset dir="${project.basedir}">
-										<!-- 拷贝内容 -->
-										<include name="run.*"/>
-										<include name="rules.json"/>
-									</fileset>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!--外部依赖jar包导出-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 指定依赖包的输出路径，需与上方的classpathPrefix保持一致 -->
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 复制-->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-lib</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${copy.to}">
+                                    <!-- 从哪里拷贝 -->
+                                    <fileset dir="${project.basedir}">
+                                        <!-- 拷贝内容 -->
+                                        <include name="run.*"/>
+                                        <include name="rules.json"/>
+                                    </fileset>
                                     <fileset dir="${project.build.directory}">
                                         <include name="*.jar"/>
                                     </fileset>
-								</copy>
-								<copy todir="${copy.to}\lib">
-									<fileset dir="${project.build.directory}\lib">
-										<include name="*.jar"/>
-									</fileset>
-								</copy>
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+                                </copy>
+                                <copy todir="${copy.to}\lib">
+                                    <fileset dir="${project.build.directory}\lib">
+                                        <include name="*.jar"/>
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-	<repositories>
-		<repository>
-			<id>alimaven</id>
-			<name>aliyun maven</name>
-			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>alimaven</id>
-			<name>aliyun maven</name>
-			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
-		</pluginRepository>
-	</pluginRepositories>
+    <repositories>
+        <repository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>
