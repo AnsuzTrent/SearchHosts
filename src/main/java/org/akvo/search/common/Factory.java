@@ -3,25 +3,18 @@
  * Copyright (c) 2018- 2020.
  */
 
-/*
- * @Title: ViewFactory
- * @Package org.apache.fraud.search.common
- * @author trent
- * @date 2020年08月18日
- * @version V1.0
- */
 package org.akvo.search.common;
 
-import org.akvo.search.controller.ActionController;
-import org.akvo.search.features.Backend;
+import org.akvo.search.controller.BackendController;
+import org.akvo.search.controller.ButtonListener;
 import org.akvo.search.view.MainView;
 
 import java.awt.*;
 
 /**
+ * 单例工厂
+ *
  * @author trent
- * @ClassName: ViewFactory
- * @Description:
  * @date 2020年08月18日
  * @since JDK 1.8
  */
@@ -29,12 +22,17 @@ public class Factory {
     private static Factory factory = null;
 
     private MainView view = null;
-    private ActionController controller = null;
-    private Backend backend = null;
+    private ButtonListener listener = null;
+    private BackendController controller = null;
 
     private Factory() {
     }
 
+    /**
+     * 获得工厂单例
+     *
+     * @return 单例对象
+     */
     public static Factory getFactory() {
         if (factory == null) {
             synchronized (Factory.class) {
@@ -46,6 +44,11 @@ public class Factory {
         return factory;
     }
 
+    /**
+     * 获得主界面单例
+     *
+     * @return 单例对象
+     */
     public MainView getView() {
         if (view == null) {
             synchronized (Factory.class) {
@@ -57,26 +60,36 @@ public class Factory {
         return view;
     }
 
-    public ActionController getListener() {
+    /**
+     * 获得按钮监听器单例
+     *
+     * @return 单例对象
+     */
+    public ButtonListener getListener() {
+        if (listener == null) {
+            synchronized (Factory.class) {
+                if (listener == null) {
+                    listener = new ButtonListener();
+                }
+            }
+        }
+        return listener;
+    }
+
+    /**
+     * 获得控制器单例
+     *
+     * @return 单例对象
+     */
+    public BackendController getController() {
         if (controller == null) {
             synchronized (Factory.class) {
                 if (controller == null) {
-                    controller = new ActionController();
+                    controller = new BackendController();
                 }
             }
         }
         return controller;
-    }
-
-    public Backend getController() {
-        if (backend == null) {
-            synchronized (Factory.class) {
-                if (backend == null) {
-                    backend = new Backend();
-                }
-            }
-        }
-        return backend;
     }
 
 }

@@ -11,7 +11,7 @@ import org.akvo.search.common.Factory;
 import org.akvo.search.common.Rule;
 import org.akvo.search.constant.CommandConstant;
 import org.akvo.search.constant.PropertyConstant;
-import org.akvo.search.controller.ActionController;
+import org.akvo.search.controller.ButtonListener;
 import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
@@ -20,6 +20,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
+ * 主界面
+ *
  * @author trent
  */
 public class MainView extends JFrame {
@@ -57,30 +59,44 @@ public class MainView extends JFrame {
         init();
     }
 
+    /**
+     * 初始化
+     */
     public void init() {
+        // 设置顶栏、中栏、底栏
         setTop();
         setMiddle();
         setBottle();
 
+        // 设置标题
         setTitle(PropertyConstant.TITLE);
 
+        // 原生风格顶部透明
         setUndecorated(true);
+        // 设置当前风格顶部
         getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
 
+        // 设置界面大小
         setSize(550, 550);
-        // 是否可改变大小
+        // 设置是否可手动改变大小
         setResizable(false);
+        // 居中
         setLocationRelativeTo(null);
-        // 关闭窗口按钮
+        // 关闭窗口按钮可以关闭程序
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // 查验是否为Windows
         isWindows();
+        // 可见
         setVisible(true);
     }
 
+    /**
+     * 设置顶栏
+     */
     private void setTop() {
-        ActionController controller = Factory.getFactory().getListener();
+        ButtonListener listener = Factory.getFactory().getListener();
         searchButton.setActionCommand(CommandConstant.SEARCH);
-        searchButton.addActionListener(controller);
+        searchButton.addActionListener(listener);
 
         setRules();
 
@@ -95,6 +111,9 @@ public class MainView extends JFrame {
         add(searchPanel, BorderLayout.NORTH);
     }
 
+    /**
+     * 设置中栏
+     */
     private void setMiddle() {
         // 设置只读
         resultArea.setEditable(false);
@@ -106,7 +125,7 @@ public class MainView extends JFrame {
         errorArea.setLineWrap(true);
         infoArea.setLineWrap(true);
 
-        // 创建滚动窗格
+        // 创建滚动窗格，将文本域套进去
         JScrollPane resultPane = new JScrollPane(resultArea);
         JScrollPane errorPane = new JScrollPane(errorArea);
         JScrollPane infoPane = new JScrollPane(infoArea);
@@ -138,13 +157,16 @@ public class MainView extends JFrame {
         add(middlePanel, BorderLayout.CENTER);
     }
 
+    /**
+     * 设置底栏
+     */
     private void setBottle() {
-        ActionController controller = Factory.getFactory().getListener();
+        ButtonListener listener = Factory.getFactory().getListener();
 
-        backupButton.addActionListener(controller);
-        updateButton.addActionListener(controller);
-        openFolderButton.addActionListener(controller);
-        flushButton.addActionListener(controller);
+        backupButton.addActionListener(listener);
+        updateButton.addActionListener(listener);
+        openFolderButton.addActionListener(listener);
+        flushButton.addActionListener(listener);
 
         backupButton.setActionCommand(CommandConstant.BACKUP);
         updateButton.setActionCommand(CommandConstant.UPDATE);
@@ -162,30 +184,40 @@ public class MainView extends JFrame {
         add(backup, BorderLayout.SOUTH);
     }
 
+    /**
+     * 检查是否为Windows 系统
+     */
     public void isWindows() {
         // 听说其在Win98,win me 中位于/Windows 下？
         if (!System.getProperty(PropertyConstant.SYSTEM_PROPERTY)
                 .contains(PropertyConstant.WINDOWS_PROPERTY)) {
-            getInfoArea().setText("目前仅支持Windows 2000/XP 及以上版本");
+            infoArea.setText("目前仅支持Windows 2000/XP 及以上版本");
 
             setComponentStatusRunning();
-            getOpenFolderButton().setEnabled(false);
-            getFlushButton().setEnabled(false);
+            openFolderButton.setEnabled(false);
+            flushButton.setEnabled(false);
         }
     }
 
+    /**
+     * 设置部件可操作性
+     */
     private void setComponentStatusRunning() {
-        getRuleList().setEnabled(false);
-        getBackupButton().setEnabled(false);
-        getUpdateButton().setEnabled(false);
-        getSearchButton().setEnabled(false);
-        getEnableTwice().setEnabled(false);
+        ruleList.setEnabled(false);
+        backupButton.setEnabled(false);
+        updateButton.setEnabled(false);
+        searchButton.setEnabled(false);
+        enableTwice.setEnabled(false);
     }
 
+    /**
+     * 设置下拉条内容
+     */
     public void setRules() {
         String json;
         StringBuilder stringBuilder = new StringBuilder();
         try {
+            // 获取运行位置
             String s = System.getProperty("user.dir");
             File file = new File(s + "\\rules.json");
             json = FileUtils.readFileToString(file, "UTF-8");
@@ -195,16 +227,21 @@ public class MainView extends JFrame {
             stringBuilder.append("无外附规则文件，使用默认");
         }
 
-
+        // 解析json
         rules = new Gson().fromJson(json, new TypeToken<ArrayList<Rule>>() {
         }.getType());
 
         stringBuilder.append("规则：\n");
-        for (Rule d : rules) {
+        for (Rule r : rules) {
             stringBuilder.append("[")
-                    .append(d.getName())
-                    .append("] ");
-            ruleList.addItem(d);
+                    .append(r.getName())
+                    .append("]")
+                    .append(r.getReplaceRegex() == null ?
+                            " (无清理正则)\n" :
+                            "\n");
+            r.setReplaceRegex("");
+            // 加入下拉条
+            ruleList.addItem(r);
         }
         stringBuilder.append("\n");
 
@@ -241,14 +278,6 @@ public class MainView extends JFrame {
 
     public JButton getUpdateButton() {
         return updateButton;
-    }
-
-    public JButton getOpenFolderButton() {
-        return openFolderButton;
-    }
-
-    public JButton getFlushButton() {
-        return flushButton;
     }
 
     public ArrayList<Rule> getRules() {

@@ -6,14 +6,24 @@
 package org.akvo.search.common;
 
 /**
+ * 规则数据封装类
+ *
  * @author trent
  */
 public class Rule {
-    private String name;
-    private String url;
-    private String cssQuery;
+    private final String name;
+    private final String cssQuery;
     private String replaceRegex;
+    private String url;
 
+    /**
+     * 初始化规则
+     *
+     * @param name         源名称
+     * @param url          源地址
+     * @param cssQuery     CSS 选择器
+     * @param replaceRegex 清理正则
+     */
     public Rule(String name, String url, String cssQuery, String replaceRegex) {
         this.name = name;
         this.url = url;
@@ -23,10 +33,6 @@ public class Rule {
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getUrl() {
@@ -41,18 +47,20 @@ public class Rule {
         return cssQuery;
     }
 
-    public void setCssQuery(String cssQuery) {
-        this.cssQuery = cssQuery;
+    public void setReplaceRegex(String replaceRegex) {
+        this.replaceRegex = replaceRegex;
     }
 
     public String getReplaceRegex() {
         return replaceRegex;
     }
 
-    public void setReplaceRegex(String replaceRegex) {
-        this.replaceRegex = replaceRegex;
-    }
 
+    /**
+     * 显示到下拉条的名字
+     *
+     * @return name
+     */
     @Override
     public String toString() {
         return name;

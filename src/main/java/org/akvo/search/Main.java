@@ -9,6 +9,8 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import org.akvo.search.common.Factory;
 
 /**
+ * 主入口
+ *
  * @author trent
  */
 public class Main {

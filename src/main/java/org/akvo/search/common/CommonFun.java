@@ -5,16 +5,16 @@
 
 package org.akvo.search.common;
 
-import org.akvo.search.constant.TextConstant;
+import org.akvo.search.constant.PropertyConstant;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 /**
+ * 一个常用方法的封装
+ *
  * @author trent
- * @ClassName: CommonFun
- * @Description:
  * @date 2020年09月05日
  * @since JDK 1.8
  */
@@ -36,10 +36,10 @@ public interface CommonFun {
     Pattern LOCALHOST = Pattern.compile("127.0.0.1");
 
     /**
-     * 过滤
+     * 标记字符串
      *
      * @param str 源字符串
-     * @return 结果
+     * @return 结果，空行、非数字开头返回" "；内网IP 返回"内网IP:"；符合项返回自身
      */
     default String filterRules(String str) {
         List<Pattern> ipFilterRegexList = new ArrayList<>();
@@ -49,17 +49,17 @@ public interface CommonFun {
         ipFilterRegexList.add(LOCALHOST);
         ipFilterRegexList.add(B_TYPE_OTHER);
 
-        // 过滤空行，返回" "
+        // 过滤空行，返回" "，其实返回啥都行反正用不上
         if (!"".equals(str)) {
             // 数字开头，否则返回" "
             if (COMPILE.matcher(Character.toString(str.charAt(0))).matches()) {
                 // 过滤内网，返回"内网IP:"
                 for (Pattern tmp : ipFilterRegexList) {
                     if (tmp.matcher(str).find()) {
-                        return TextConstant.INTRANET;
+                        return PropertyConstant.INTRANET;
                     }
                 }
-                // 正常网址
+                // 正常网址，返回自身
                 return str;
             }
         }

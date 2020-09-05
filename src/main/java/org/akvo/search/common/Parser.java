@@ -24,6 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * 解析器，用于获取源网页的信息并解析出结果集合
+ *
  * @author trent
  */
 public class Parser implements CommonFun {
@@ -31,14 +33,28 @@ public class Parser implements CommonFun {
     private final Pattern ipPattern = Pattern.compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}");
     private String site;
 
+    /**
+     * 解释器构造方法
+     *
+     * @param rule 解析规则
+     * @param site 目标网址
+     */
     public Parser(Rule rule, String site) {
         this.site = site;
         this.rule = rule;
 
+        // 将通配${website} 换成真实网址
         String url = this.rule.getUrl().replace(PropertyConstant.REPLACE_SITE, site);
         this.rule.setUrl(url);
     }
 
+    /**
+     * 获得JSoup 的Document 数据
+     *
+     * @param url 网址
+     * @return Document数据
+     * @throws IOException 获取网页可能的报错
+     */
     protected Document getDocumentFromPage(String url) throws IOException {
         // 不打印日志
         LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
@@ -53,14 +69,17 @@ public class Parser implements CommonFun {
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
         WebClientOptions webClientOptions = webClient.getOptions();
 
+        // 忽视ssl 证书错误
         webClientOptions.setUseInsecureSSL(true);
         // 禁用CSS
         webClientOptions.setCssEnabled(false);
+        // 不丢状态码
         webClientOptions.setThrowExceptionOnFailingStatusCode(false);
         // 启用JS 解释器
         webClientOptions.setJavaScriptEnabled(true);
         // JS 错误时不抛出异常
         webClientOptions.setThrowExceptionOnScriptError(false);
+        // 不追踪请求
         webClientOptions.setDoNotTrackEnabled(true);
         // 连接超时时间
         webClientOptions.setTimeout(5 * 1000);
@@ -71,29 +90,40 @@ public class Parser implements CommonFun {
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
         // 等待后台运行 todo 这里卡一下
         webClient.waitForBackgroundJavaScript(10 * 10000);
+        // JS 脚本超时
         webClient.setJavaScriptTimeout(5 * 1000);
 
         return Jsoup.parse(page.asXml());
     }
 
+    /**
+     * 根据含有ip 和其他字符的字符串获得“ip 网址”集合
+     *
+     * @param ipTmp 含ip 的字符串
+     * @param host  对应网址
+     * @return 结果集
+     */
     protected Vector<String> makeRecode(String ipTmp, String host) {
         Vector<String> recode = new Vector<>();
         Matcher matcher = ipPattern.matcher(ipTmp);
 
         while (matcher.find()) {
-            // 获得ip 型字符串
+            // 匹配获得ip 字符串
             String s = matcher.group();
-            // 判断是否为内网ip
+            // 判断是否为内网ip ，不是则返回值与本身相同
             String tmp = filterRules(s);
             if (!tmp.equals(s)) {
                 continue;
             }
+            // 格式化字符串
             String s1 = String.format(PropertyConstant.RECODE_FORMAT, s, host);
             if (!recode.contains(s1)) {
+                // 没有与之前重复
                 recode.addElement(s1);
             }
         }
 
+        // 排序
         Collections.sort(recode);
 
         return recode;
@@ -105,48 +135,62 @@ public class Parser implements CommonFun {
      * @return 完整结果
      */
     protected Vector<String> getResult() {
+        // 结果集合
         Vector<String> recode;
         try {
+            // 获得网页节点
             Document doc = getDocumentFromPage(rule.getUrl());
 
+            // 通过CSS 选择器获得包含所需结果的字符串化集合
             String ipTmp = doc.select(rule.getCssQuery()).text();
 
+            // 依据规则中的正则式清除无关字符
             String replaceRegex = rule.getReplaceRegex();
             if (!"".equals(replaceRegex)) {
                 ipTmp = ipTmp.replaceAll(replaceRegex, "");
             }
 
+            // 获得结果集合
             recode = makeRecode(ipTmp, site);
 
             // 取得结果是否为空
             if (recode != null && !recode.isEmpty()) {
+                // 结果集非空，在结尾加换行符
                 recode.addElement("\n");
             } else {
                 recode = new Vector<>();
+                // 在结果集首位加空集合标识
                 recode.add(PropertyConstant.NONE_FLAG);
+                // 将当前网址加入集合，准备加入无结果集
                 recode.add(site);
+                // 将信息语句也放进集合
                 recode.add(String.format(TextConstant.NO_CORRESPOND_IP, site));
             }
 
         } catch (Exception e) {
             recode = new Vector<>();
+            // 在结果集首位加空集合标识
             recode.add(PropertyConstant.NONE_FLAG);
+            // 将当前网址加入集合，准备加入无结果集
             recode.add(site);
+            // 将报错信息语句也放进集合
             recode.add(String.format(TextConstant.ERROR_FROM_SITE, e.getMessage(), site));
         }
 
         return recode;
     }
 
+    /**
+     * 解释器执行入口
+     *
+     * @return 结果集，若为异常结果集则格式为{空集合标识, 无结果网址, 信息}
+     */
     public Vector<String> exec() {
+        // 获取结果集
         Vector<String> record = this.getResult();
+        // 置空site，不过可能是没什么用处的句子
         this.site = "";
         return record;
     }
-
-//    public void printName(int flag) {
-//        Factory.getFactory().getController()
-//                .printInfo(String.format(TextConstant.NAME_INFO, rule.getName(), flag));
-//    }
 
 }

@@ -32,7 +32,7 @@
 - 网站名称
 - get 提交方式的网址（用"`${website}`"代替要查询的网站）
 - 可被识别的CSS选择器
-- 去除多余字符的正则式（可以没有值，但必须有这个属性）
+- 去除多余字符的正则式（非必需）
 
 一个例子如下：
 ``` json
@@ -40,8 +40,16 @@
     "name": "站长之家PC 版",
     "url": "http://tool.chinaz.com/dns/?type=1&host=${website}&ip=",
     "cssQuery": "div.w60-0.tl",
-    "replaceRegex": "(\[(.+?)]|-)"
+    "replaceRegex": "(\\[(.+?)]|-)"
 }
+```
+或者
+``` json
+{
+    "name": "IP138",
+    "url": "https://site.ip138.com/${website}",
+    "cssQuery": "div#curadress > p > a"
+  }
 ```
 
 #### 参与贡献

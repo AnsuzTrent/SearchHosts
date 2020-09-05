@@ -9,6 +9,8 @@ import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 
 /**
+ * 内部参数常量
+ *
  * @author trent
  * @date 2020年08月08日
  * @since JDK 1.8
@@ -23,6 +25,7 @@ public interface PropertyConstant {
     String ETC_PATH = "C:\\Windows\\System32\\drivers\\etc";
     String REPLACE_SITE = "${website}";
     String RECODE_FORMAT = "\n%s %s";
+    String INTRANET = "inter";
     /**
      * 系统host
      */

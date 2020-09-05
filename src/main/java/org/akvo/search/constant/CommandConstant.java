@@ -3,19 +3,12 @@
  * Copyright (c) 2018- 2020.
  */
 
-/*
- * @Title: CommandComstant
- * @Package org.akvo.search.constant
- * @author trent
- * @date 2020年09月03日
- * @version V1.0
- */
 package org.akvo.search.constant;
 
 /**
+ * 按钮命令常量
+ *
  * @author trent
- * @ClassName: CommandComstant
- * @Description:
  * @date 2020年09月03日
  * @since JDK 1.8
  */

@@ -14,13 +14,11 @@
   {
     "name": "IP138",
     "url": "https://site.ip138.com/${website}",
-    "cssQuery": "div#curadress > p > a",
-    "replaceRegex": ""
+    "cssQuery": "div#curadress > p > a"
   },
   {
     "name": "ToolFK 工具箱",
     "url": "https://www.toolfk.com/online-dns?query=${website}",
     "cssQuery": "table.layui-table > tbody > tr >  td",
-    "replaceRegex": ""
   }
 ]
