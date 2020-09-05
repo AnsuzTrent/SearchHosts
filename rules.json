@@ -6,15 +6,21 @@
     "replaceRegex": "(\\[(.+?)]|-)"
   },
   {
+    "name": "站长之家手机版",
+    "url": "https://mtool.chinaz.com/dns/?host=${website}&ip=&accessmode=1",
+    "cssQuery": "td.z-tc.c-39 > span.c-green",
+    "replaceRegex": "(\\[(.+?)]|-)"
+  },
+  {
     "name": "IP138",
     "url": "https://site.ip138.com/${website}",
     "cssQuery": "div#curadress > p > a",
     "replaceRegex": ""
   },
   {
-    "name": "站长之家手机版",
-    "url": "https://mtool.chinaz.com/dns/?host=${website}&ip=&accessmode=1",
-    "cssQuery": "td.z-tc.c-39 > span.c-green",
-    "replaceRegex": "(\\[(.+?)]|-)"
+    "name": "ToolFK 工具箱",
+    "url": "https://www.toolfk.com/online-dns?query=${website}",
+    "cssQuery": "table.layui-table > tbody > tr >  td",
+    "replaceRegex": ""
   }
 ]
