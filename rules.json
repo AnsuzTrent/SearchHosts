@@ -19,6 +19,6 @@
   {
     "name": "ToolFK 工具箱",
     "url": "https://www.toolfk.com/online-dns?query=${website}",
-    "cssQuery": "table.layui-table > tbody > tr >  td",
+    "cssQuery": "table.layui-table > tbody > tr >  td"
   }
 ]

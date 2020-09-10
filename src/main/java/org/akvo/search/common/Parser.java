@@ -32,6 +32,7 @@ public class Parser implements CommonFun {
     private final Rule rule;
     private final Pattern ipPattern = Pattern.compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}");
     private String site;
+    private final String url;
 
     /**
      * 解释器构造方法
@@ -44,8 +45,7 @@ public class Parser implements CommonFun {
         this.rule = rule;
 
         // 将通配${website} 换成真实网址
-        String url = this.rule.getUrl().replace(PropertyConstant.REPLACE_SITE, site);
-        this.rule.setUrl(url);
+        this.url = this.rule.getUrl().replace(PropertyConstant.REPLACE_SITE, site);
     }
 
     /**
@@ -66,23 +66,21 @@ public class Parser implements CommonFun {
 //		System.setProperty("http.proxyPort", "8090");
 
         // 模拟 todo 这里会卡一下
-        WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        WebClientOptions webClientOptions = webClient.getOptions();
+        WebClient webClient = new WebClient(BrowserVersion.FIREFOX);
+        WebClientOptions options = webClient.getOptions();
 
         // 忽视ssl 证书错误
-        webClientOptions.setUseInsecureSSL(true);
+        options.setUseInsecureSSL(true);
         // 禁用CSS
-        webClientOptions.setCssEnabled(false);
+        options.setCssEnabled(false);
         // 不丢状态码
-        webClientOptions.setThrowExceptionOnFailingStatusCode(false);
-        // 启用JS 解释器
-        webClientOptions.setJavaScriptEnabled(true);
+        options.setThrowExceptionOnFailingStatusCode(false);
         // JS 错误时不抛出异常
-        webClientOptions.setThrowExceptionOnScriptError(false);
+        options.setThrowExceptionOnScriptError(false);
         // 不追踪请求
-        webClientOptions.setDoNotTrackEnabled(true);
+        options.setDoNotTrackEnabled(true);
         // 连接超时时间
-        webClientOptions.setTimeout(5 * 1000);
+        options.setTimeout(5 * 1000);
         // todo 这里卡很久
         HtmlPage page = webClient.getPage(url);
 
@@ -139,7 +137,7 @@ public class Parser implements CommonFun {
         Vector<String> recode;
         try {
             // 获得网页节点
-            Document doc = getDocumentFromPage(rule.getUrl());
+            Document doc = getDocumentFromPage(this.url);
 
             // 通过CSS 选择器获得包含所需结果的字符串化集合
             String ipTmp = doc.select(rule.getCssQuery()).text();

@@ -12,7 +12,6 @@ import java.io.File;
  * 内部参数常量
  *
  * @author trent
- * @date 2020年08月08日
  * @since JDK 1.8
  */
 public interface PropertyConstant {

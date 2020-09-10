@@ -9,7 +9,6 @@ package org.akvo.search.constant;
  * 输出文本常量
  *
  * @author trent
- * @date 2020年09月05日
  * @since JDK 1.8
  */
 public interface TextConstant {

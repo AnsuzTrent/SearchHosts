@@ -42,7 +42,7 @@ public class MainView extends JFrame {
     ArrayList<Rule> rules;
 
     public MainView() {
-        enableTwice = new JCheckBox("开启二次搜索", false);
+        enableTwice = new JCheckBox("开启二次搜索", true);
         hostsTextFiled = new JTextField();
         searchButton = new JButton("搜索");
         ruleList = new JComboBox<>();
@@ -228,18 +228,21 @@ public class MainView extends JFrame {
         }
 
         // 解析json
-        rules = new Gson().fromJson(json, new TypeToken<ArrayList<Rule>>() {
-        }.getType());
+        rules = new Gson()
+                .fromJson(json, new TypeToken<ArrayList<Rule>>() {
+                }.getType());
 
         stringBuilder.append("规则：\n");
         for (Rule r : rules) {
             stringBuilder.append("[")
                     .append(r.getName())
-                    .append("]")
-                    .append(r.getReplaceRegex() == null ?
-                            " (无清理正则)\n" :
-                            "\n");
-            r.setReplaceRegex("");
+                    .append("]");
+            if (r.getReplaceRegex() == null) {
+                stringBuilder.append(" (无清理正则)");
+                r.setReplaceRegex("");
+            }
+            stringBuilder.append("\n");
+
             // 加入下拉条
             ruleList.addItem(r);
         }

@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
  * 监听器
  *
  * @author trent
- * @date 2020年09月03日
  * @since JDK 1.8
  */
 public class ButtonListener implements ActionListener {
