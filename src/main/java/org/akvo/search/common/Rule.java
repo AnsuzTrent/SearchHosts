@@ -47,14 +47,13 @@ public class Rule {
         return cssQuery;
     }
 
-    public void setReplaceRegex(String replaceRegex) {
-        this.replaceRegex = replaceRegex;
-    }
-
     public String getReplaceRegex() {
         return replaceRegex;
     }
 
+    public void setReplaceRegex(String replaceRegex) {
+        this.replaceRegex = replaceRegex;
+    }
 
     /**
      * 显示到下拉条的名字

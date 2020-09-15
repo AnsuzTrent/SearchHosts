@@ -15,7 +15,6 @@ import java.awt.*;
  * 单例工厂
  *
  * @author trent
- * @date 2020年08月18日
  * @since JDK 1.8
  */
 public class Factory {
